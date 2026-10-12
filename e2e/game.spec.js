@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+test('complete mobile experiment, persistence, compare and retry all outcomes',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('');await expect(page.getByRole('heading',{name:/Nothing wasted/})).toBeVisible();
+ await expect(page.locator('.hero-image img')).toHaveJSProperty('naturalWidth',1536);
+ await page.screenshot({path:'/tmp/bluegreen-mobile.png',fullPage:true});
+ await page.getByRole('button',{name:'Start experiment'}).click();
+ await expect(page.getByRole('button',{name:'Create recipe',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:/Straw/}).click();await page.getByRole('button',{name:/Recycled paper/}).click();
+ await expect(page.getByRole('status')).toContainText('up to three');
+ await page.getByRole('button',{name:'Create recipe',exact:true}).click();
+ await page.getByLabel('Sawdust',{exact:true}).fill('60');
+ const sum=await page.locator('.legend strong').allTextContents();expect(sum.reduce((s,v)=>s+parseInt(v),0)).toBe(100);
+ await page.getByRole('button',{name:'Begin growth'}).click();await page.getByRole('button',{name:'Pause observation'}).click();
+ const paused=await page.locator('.specimen-bottom strong').textContent();await page.waitForTimeout(400);expect(await page.locator('.specimen-bottom strong').textContent()).toBe(paused);
+ await page.getByRole('button',{name:'Resume observation'}).click();await page.getByRole('button',{name:'Reveal the outcome'}).click({timeout:20000});
+ await expect(page.locator('.outcome-tag')).toHaveText('Successful colonization');await page.getByRole('button',{name:'Reflect & explore'}).click();
+ await page.reload();await expect(page.locator('.history-entry')).toHaveCount(1);
+ await page.getByRole('button',{name:'Interiors',exact:true}).click();await expect(page.locator('.application-content')).toContainText('fire performance');
+ await page.getByRole('button',{name:'Refine & retry',exact:true}).click();await page.getByLabel('Substrate moisture',{exact:true}).fill('45');
+ await page.getByRole('button',{name:'Begin growth'}).click();await page.getByRole('button',{name:'Reveal the outcome'}).click({timeout:20000});
+ await expect(page.locator('.outcome-tag')).toHaveText('Incomplete colonization');await page.getByRole('button',{name:'Refine this recipe'}).click();
+ await page.getByLabel('Incubation temperature',{exact:true}).fill('36');await page.getByRole('button',{name:'Begin growth'}).click();await page.getByRole('button',{name:'Reveal the outcome'}).click({timeout:20000});
+ await expect(page.locator('.outcome-tag')).toHaveText('Failed growth / contamination risk');await page.getByRole('button',{name:'Reflect & explore'}).click();await expect(page.locator('.history-entry')).toHaveCount(3);
+ await page.getByRole('button',{name:'Edit experiment 1',exact:true}).click();await expect(page.getByLabel('Substrate moisture',{exact:true})).toHaveValue('62');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+});
+test('desktop layout and assets resolve beneath repository path',async({page,request})=>{await page.setViewportSize({width:1440,height:1000});await page.goto('');await page.screenshot({path:'/tmp/bluegreen-desktop.png',fullPage:true});const image=await request.get('images/mycelium.png');expect(image.status()).toBe(200);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);});

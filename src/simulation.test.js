@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {rebalance,evaluate} from './simulation.js';
+test('sliders preserve integer 100% blends through repeated adjustments',()=>{let r={sawdust:34,coffee:33,straw:33};for(let n=0;n<=100;n++){r=rebalance(r,['sawdust','coffee','straw'][n%3],n);assert.equal(Object.values(r).reduce((a,b)=>a+b),100);assert.ok(Object.values(r).every(x=>x>=0));}});
+test('all three illustrative outcomes and explanations',()=>{const base={recipe:{sawdust:60,straw:40},moisture:62,temperature:24};assert.equal(evaluate(base).outcome,'success');assert.equal(evaluate({...base,moisture:45}).outcome,'incomplete');assert.equal(evaluate({...base,temperature:35}).outcome,'failed');assert.equal(evaluate(base).reasons.length,2);});
