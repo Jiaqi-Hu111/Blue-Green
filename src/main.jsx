@@ -1,50 +1,648 @@
-import React,{useState,useEffect} from 'react';
-import {createRoot} from 'react-dom/client';
-import {motion,AnimatePresence,useReducedMotion} from 'motion/react';
-import {ArrowUpRight,ArrowRight,ArrowLeft,Plus,Check,X,Leaf,FlaskConical,RotateCcw,ChevronRight,Info} from 'lucide-react';
-import {MATERIALS,rebalance,evaluate} from './simulation';
-import './style.css';
-const ASSET=import.meta.env.BASE_URL;
-const STEPS=['Introduction','Select waste','Create recipe','Grow mycelium','Results','Reflect & retry'];
-const KEY='bluegreen-lab-v1';
-function read(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch{return {};}}
-const stored=read();
-function App(){
- const [step,setStep]=useState(Number.isInteger(stored.step)?Math.min(5,Math.max(0,stored.step)):0);
- const [selected,setSelected]=useState(stored.selected||['sawdust','coffee']);
- const [recipe,setRecipe]=useState(stored.recipe||{sawdust:65,coffee:35});
- const [moisture,setMoisture]=useState(stored.moisture??62),[temperature,setTemperature]=useState(stored.temperature??24);
- const [history,setHistory]=useState(stored.history||[]),[progress,setProgress]=useState(0),[growing,setGrowing]=useState(false),[result,setResult]=useState(stored.result||null);
- const [info,setInfo]=useState(false),[notice,setNotice]=useState(''),[application,setApplication]=useState('Packaging');
- const reduced=useReducedMotion();
- useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify({step,selected,recipe,moisture,temperature,history,result}));}catch{setNotice('Storage is unavailable. This experiment will stay in this session only.');}},[step,selected,recipe,moisture,temperature,history,result]);
- useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});},[step]);
- useEffect(()=>{if(!growing)return;const timer=setInterval(()=>setProgress(p=>{if(p>=100){setGrowing(false);return 100;}return Math.min(100,p+2);}),160);return()=>clearInterval(timer);},[growing]);
- function move(n){setStep(n);setNotice('');}
- function toggle(id){if(selected.includes(id))setSelected(selected.filter(x=>x!==id));else if(selected.length<3)setSelected([...selected,id]);else setNotice('Choose up to three materials. Remove one to try another.');}
- function create(){const r={};let left=100;selected.forEach((id,i)=>{r[id]=i===selected.length-1?left:Math.floor(100/selected.length);left-=r[id];});setRecipe(r);move(2);}
- function begin(){setProgress(0);setGrowing(true);setResult(null);move(3);}
- function finish(){const verdict=evaluate({recipe,moisture,temperature});const entry={id:Date.now(),recipe:{...recipe},moisture,temperature,...verdict};setResult(entry);setHistory(h=>[entry,...h].slice(0,12));move(4);}
- function edit(entry){if(entry){setRecipe({...entry.recipe});setSelected(Object.keys(entry.recipe));setMoisture(entry.moisture);setTemperature(entry.temperature);}move(2);}
- useEffect(()=>{if(!info)return;const previous=document.activeElement;const handler=e=>{if(e.key==='Escape')setInfo(false);if(e.key==='Tab'){const items=[...document.querySelectorAll('.modal button,.modal a')];const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};document.addEventListener('keydown',handler);return()=>{document.removeEventListener('keydown',handler);previous?.focus();};},[info]);
- const activeStage=progress<20?0:progress<50?1:progress<80?2:3;
- return <div className="app-shell"><header className="site-header"><button className="wordmark" onClick={()=>move(0)} aria-label="BLUEGREEN home">BLUE<span>GREEN</span><span className="brand-dot"/></button><span className="header-sub">MATERIAL FUTURES / VOL. 01</span><button className="about-button" onClick={()=>setInfo(true)} aria-label="About the simulation"><Info size={18}/><span>About the lab</span></button></header>
- <main><AnimatePresence mode="wait"><motion.div key={step} initial={{opacity:0,y:reduced?0:18}} animate={{opacity:1,y:0}} exit={{opacity:0,y:reduced?0:-12}} transition={{duration:.35}}>
- {step===0?<><section className="hero"><div className="hero-copy"><div className="eyebrow"><span className="tiny-cross">✳</span> THE MYCELIUM LAB</div><h1>Nothing wasted.<br/>Everything<br/><em>reimagined.</em></h1><p className="hero-description">A little waste. A living network.<br/>An entirely new material.</p><p className="hero-detail">Step into the lab and explore how mycelium can transform everyday leftovers into the materials of tomorrow.</p><button className="button primary" onClick={()=>move(1)}>Start experiment <ArrowUpRight size={20}/></button><div className="hero-foot"><span className="small-line"/> AN INTERACTIVE MATERIAL EXPLORATION</div></div><div className="hero-image"><img src={`${ASSET}images/mycelium.png`} alt="Cream oyster mushroom forms on an organic substrate"/><div className="image-overlay"/><div className="image-top"><span>FIG. 01</span><span>PLEUROTUS / MYCELIUM</span></div><div className="specimen-label"><span className="live-dot"/> LIVING SYSTEMS, NEW POSSIBILITIES</div><div className="image-caption"><span>From the ground up.</span><span>01 — 06</span></div></div></section><section className="intro-bottom"><div className="intro-quote">Waste is a beginning.<br/><em>Let’s see what it can become.</em></div><div className="intro-facts"><div><span>01</span><p>Choose your<br/>waste materials</p></div><div><span>02</span><p>Find your<br/>growing conditions</p></div><div><span>03</span><p>Watch a new<br/>material emerge</p></div></div><div className="simulation-note"><Leaf size={18}/><p>An educational simulation.<br/>Curiosity encouraged. Outcomes illustrative.</p></div></section></>:<>
- <div className="lab-top"><button className="text-button" onClick={()=>{setGrowing(false);move(step-1);}}><ArrowLeft size={16}/> {step===1?'Back to introduction':'Back'}</button><span>EXPERIMENT {String(history.length+(step<4?1:0)||1).padStart(2,'0')}</span></div>
- <nav className="step-nav" aria-label="Experiment progress">{STEPS.slice(1).map((s,i)=><button key={s} className={step===i+1?'current':step>i+1?'complete':''} onClick={()=>{if(i+1<step){setGrowing(false);move(i+1);}}} disabled={i+1>step}><span>{String(i+1).padStart(2,'0')}</span><span>{s}</span></button>)}</nav>
- {step===1&&<section className="lab-section"><SectionHead number="01" tag="THE RAW MATERIAL" title={<>A second life<br/>starts here.</>} description="Choose two or three waste streams. Every material brings something different to the mix."/><div className="selection-meta"><span>YOUR SUBSTRATES</span><span>{selected.length} / 3 SELECTED</span></div><div className="material-grid">{MATERIALS.map((m,i)=><button className={`material ${selected.includes(m.id)?'selected':''}`} key={m.id} onClick={()=>toggle(m.id)} aria-pressed={selected.includes(m.id)}><div className={`material-photo ${m.id}`}><div className="material-photograph" role="img" aria-label={`${m.name} texture study`} style={{backgroundImage:`url(${ASSET}images/materials.png)`}}/><span className="material-number">0{i+1}</span><span className="select-icon">{selected.includes(m.id)?<Check size={17}/>:<Plus size={17}/>}</span></div><div className="material-copy"><span className="eyebrow">{m.label}</span><h3>{m.name}</h3><p>{m.description}</p></div></button>)}</div><div className="action-row"><p className="muted">A blend begins with diversity.</p><button className="button primary" disabled={selected.length<2} onClick={create}>Create recipe <ArrowRight size={18}/></button></div></section>}
- {step===2&&<section className="lab-section"><SectionHead number="02" tag="THE BALANCE" title={<>Make it<br/><em>your mixture.</em></>} description="Balance your ingredients, then set the conditions for a living material to take shape."/><div className="recipe-layout"><div className="composition"><span className="eyebrow">SUBSTRATE COMPOSITION</span><div className="donut" style={{background:donut(recipe)}}><div><strong>100<span>%</span></strong><small>TOTAL MIX</small></div></div><div className="legend">{Object.entries(recipe).map(([id,value])=>{const m=MATERIALS.find(x=>x.id===id);return <div key={id}><i style={{background:m.tone}}/>{m.name}<strong>{value}%</strong></div>;})}</div><p className="micro">Dry substrate proportions. Sliders rebalance the remaining ingredients automatically.</p></div><div className="controls"><h3>The recipe</h3>{Object.entries(recipe).map(([id,value])=><Range key={id} label={MATERIALS.find(m=>m.id===id).name} value={value} min={0} max={100} unit="%" onChange={v=>setRecipe(rebalance(recipe,id,v))}/>)}<div className="conditions"><div className="eyebrow">GROWING CONDITIONS</div><Range label="Substrate moisture" value={moisture} min={30} max={90} unit="%" onChange={setMoisture}/><p className="micro">Water as a percentage of wet substrate mass. This is not ambient relative humidity.</p><Range label="Incubation temperature" value={temperature} min={10} max={38} unit="°C" onChange={setTemperature}/><p className="micro">Model exploration range: 30–90% moisture, 10–38°C.</p></div></div></div><div className="assumption"><Info size={17}/><p>All growing ranges are simulation assumptions, not a cultivation protocol. <button onClick={()=>setInfo(true)}>Read the research note ↗</button></p></div><div className="action-row"><button className="text-button" onClick={()=>move(1)}>Change materials</button><button className="button primary" onClick={begin}>Begin growth <ArrowRight size={18}/></button></div></section>}
- {step===3&&<section className="lab-section"><SectionHead number="03" tag="THE TRANSFORMATION" title={<>Small threads.<br/><em>New connections.</em></>} description="Watch an accelerated, illustrative growth cycle. The network responds to your recipe and conditions."/><div className="growth-layout"><div className="specimen"><div className="specimen-top"><span>SPECIMEN / LIVE SIMULATION</span><span className="live-dot"/></div><Mycelium progress={progress} outcome={evaluate({recipe,moisture,temperature}).outcome}/><div className="specimen-bottom"><span>COLONIZATION SEQUENCE</span><strong>{progress}%</strong></div></div><div className="growth-stages">{['Inoculation','First connections','Network expansion','Material formation'].map((s,i)=><div className={activeStage===i?'active':activeStage>i?'done':''} key={s}><span>0{i+1}</span><div><h3>{s}</h3><p>{['The starting culture meets your substrate.','Fine branching threads explore the mixture.','Hyphae extend and connect across the material.','The modeled cycle reaches its final state.'][i]}</p></div>{activeStage>i&&<Check size={18}/>}</div>)}<div className="growth-conditions"><span>{moisture}% SUBSTRATE MOISTURE</span><span>{temperature}°C INCUBATION</span></div></div></div><div className="action-row"><p className="micro">Sequence progress, not measured colonization or real elapsed time.</p>{progress<100?<button className="button secondary" onClick={()=>setGrowing(!growing)}>{growing?'Pause observation':'Resume observation'}</button>:<button className="button primary" onClick={finish}>Reveal the outcome <ArrowRight size={18}/></button>}</div></section>}
- {step===4&&result&&<section className="lab-section"><SectionHead number="04" tag="THE FINDINGS" title={result.title} description="Every outcome tells us something about the relationship between waste, water and living systems."/><div className="results-layout"><div className={`result-sample ${result.outcome}`}><Mycelium progress={100} outcome={result.outcome}/><span className="sample-caption">{result.outcome==='failed'?'NO SUITABLE SAMPLE FORMED':'ILLUSTRATIVE BIOMATERIAL SAMPLE'}</span></div><div className="findings"><span className={`outcome-tag ${result.outcome}`}><i/>{result.label}</span><h3>{result.outcome==='success'?'A connected living scaffold.':result.outcome==='incomplete'?'There is room to refine.':'A useful reason to try again.'}</h3><p>{result.outcome==='success'?'In this model, the conditions allow a continuous network to bind the substrate. Drying and further processing would be needed for a real composite.':result.outcome==='incomplete'?'The model leaves parts of the substrate unconnected. Adjust your conditions or blend to explore a more continuous network.':'Conditions sit outside the model’s growing range or combine several stressors. Contamination risk is illustrative; no organism or contamination is detected.'}</p><div className="reason-list">{result.reasons.map((r,i)=><div key={r}><span>0{i+1}</span><p>{r}</p></div>)}</div></div></div><div className="assumption"><Info size={17}/><p>This is a simulated outcome. No validated success probabilities, strength values, or safety claims are implied.</p></div><div className="action-row"><button className="text-button" onClick={()=>edit()}>Refine this recipe</button><button className="button primary" onClick={()=>move(5)}>Reflect & explore <ArrowRight size={18}/></button></div></section>}
- {step===4&&!result&&<section className="lab-section"><h2>Your experiment is waiting.</h2><button className="button primary" onClick={begin}>Run the simulation <ArrowRight size={18}/></button></section>}
- {step===5&&<section className="lab-section"><SectionHead number="05" tag="THE NEXT LIFE" title={<>An ending.<br/><em>Or a beginning?</em></>} description="Compare your experiments. Rethink a recipe. Imagine where a grown material could go next."/><div className="history-head"><h3>Your lab notebook</h3><span>{history.length} / 12 SAVED LOCALLY</span></div>{history.length===0?<p className="empty">Your first experiment is still ahead. Create a recipe to begin your notebook.</p>:<div className="history-table">{history.map((h,i)=><div className="history-entry" key={h.id}><span className="history-index">{String(history.length-i).padStart(2,'0')}</span><div><strong>{h.label}</strong><p>{Object.entries(h.recipe).map(([id,v])=>`${MATERIALS.find(m=>m.id===id).name} ${v}%`).join(' · ')}</p><small>{h.moisture}% moisture / {h.temperature}°C</small></div><button aria-label={`Edit experiment ${history.length-i}`} onClick={()=>edit(h)}><ArrowUpRight size={20}/></button></div>)}</div>}<div className="notebook-actions"><button className="button primary" onClick={()=>edit()}>Refine & retry <RotateCcw size={17}/></button><button className="text-button" onClick={()=>move(1)}>Try a new blend <Plus size={16}/></button></div><section className="lifecycle"><div><span className="eyebrow">BEYOND THE LAB</span><h2>Grown for a purpose.<br/><em>Designed for a cycle.</em></h2></div><div className="application-tabs">{['Packaging','Interiors','Return to earth'].map(a=><button className={application===a?'active':''} onClick={()=>setApplication(a)} key={a}>{a}</button>)}</div><div className="application-content"><span className="lifecycle-icon"><Leaf size={34}/></span><div><h3>{application}</h3><p>{{Packaging:'Grown composites are being explored as protective packaging. Shape, drying, moisture resistance and transport testing all matter before replacing an existing material.',Interiors:'Acoustic panels and interior objects can give agricultural residues a new role. Real use requires testing for fire performance, durability and indoor safety.','Return to earth':'A material’s next life depends on its full formulation. Coatings, additives and local composting conditions determine whether and how it can return to biological cycles.'}[application]}</p></div></div><div className="cycle"><span>WASTE</span><ArrowRight size={15}/><span>GROWTH</span><ArrowRight size={15}/><span>USE</span><ArrowRight size={15}/><span>RETURN</span></div></section></section>}
- </>}
- </motion.div></AnimatePresence>{notice&&<div className="notice" role="status">{notice}</div>}</main><footer><span>BLUEGREEN — MYCELIUM LAB</span><span>A STUDY IN MATERIAL POSSIBILITIES</span><button onClick={()=>setInfo(true)}>Research & assumptions <ArrowUpRight size={13}/></button></footer>
- <AnimatePresence>{info&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setInfo(false)}><motion.section className="modal" role="dialog" aria-modal="true" aria-labelledby="about-title" initial={{y:20}} animate={{y:0}} onClick={e=>e.stopPropagation()}><button className="close" onClick={()=>setInfo(false)} aria-label="Close research note" autoFocus><X/></button><span className="eyebrow">RESEARCH NOTE / 01</span><h2 id="about-title">Inspired by nature.<br/><em>Guided by curiosity.</em></h2><p>This educational model explores mycelium composites. It does not provide a cultivation protocol or a prediction of real experimental performance.</p><h3>Transparent assumptions</h3><p>Illustrative favorable conditions: 55–70% substrate moisture and 20–28°C. Coffee above 40% or paper above 50% adds a modeled stressor. Moisture outside 40–80%, temperature outside 15–33°C, or three stressors produces a failed outcome. One or two stressors produces incomplete growth.</p><p>Moisture means water / wet substrate mass, not ambient humidity. Species, sterilization, airflow and incubation duration are not modeled. Percentages are recipe assumptions, not validated thresholds.</p><h3>Research context</h3><a href="https://doi.org/10.1038/srep41292" target="_blank" rel="noreferrer">Haneef et al. (2017), Advanced Materials From Fungal Mycelium ↗</a><a href="https://doi.org/10.1016/j.matdes.2018.11.027" target="_blank" rel="noreferrer">Appels et al. (2019), Fabrication factors influencing properties of mycelium composites ↗</a><p className="micro">Experiments are stored on this device only. The notebook retains the latest 12 results. Botanical artwork is illustrative.</p></motion.section></motion.div>}</AnimatePresence></div>;
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createRoot } from "react-dom/client";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Menu,
+  X,
+  Info,
+  Leaf,
+  BookOpen,
+  RotateCcw,
+  Home,
+  Check,
+} from "lucide-react";
+import { MATERIALS, RULES, percentages, evaluate } from "./simulation";
+import {
+  STORAGE_KEY,
+  loadState,
+  freshDraft,
+  changePortion,
+  draftFromEntry,
+} from "./state";
+import {
+  Modal,
+  HelpContent,
+  Button,
+  ScreenHeading,
+  ActionDock,
+} from "./components/Common";
+import {
+  Welcome,
+  LaboratoryIntroduction,
+  MixingScreen,
+  ConditionsScreen,
+  GrowthScreen,
+} from "./screens";
+import { ResultPanel } from "./components/Results";
+import { LifecycleGallery } from "./components/Lifecycle";
+import {
+  ExperimentNotebook,
+  ComparisonPanel,
+  ExperimentSummary,
+} from "./components/Notebook";
+import "./style.css";
+const STAGE_NAMES = [
+  "Welcome",
+  "Explore the Laboratory",
+  "Collect & Mix",
+  "Growth Conditions",
+  "Watch Mycelium Grow",
+  "Experiment Results",
+  "Material Lifecycle",
+  "Experiment Notebook",
+];
+const newRunId = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+function App() {
+  const [state, setState] = useState(() => {
+    try {
+      return loadState(window.localStorage);
+    } catch {
+      return loadState({ getItem: () => null });
+    }
+  });
+  const { step, draft, history, resultId, nextNumber } = state;
+  const [overlay, setOverlay] = useState(null),
+    [notice, setNotice] = useState(""),
+    [storageError, setStorageError] = useState(false),
+    [playing, setPlaying] = useState(false),
+    [autoMixing, setAutoMixing] = useState(false);
+  const reduced = useReducedMotion(),
+    screenRef = useRef(null),
+    autoRef = useRef(null),
+    noticeTimer = useRef(null);
+  const recipe = percentages(draft.portions),
+    result = history.find((h) => h.id === resultId);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      setStorageError(true);
+    }
+  }, [state]);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    const t = setTimeout(
+      () => screenRef.current?.focus({ preventScroll: true }),
+      reduced ? 0 : 400,
+    );
+    return () => clearTimeout(t);
+  }, [step, reduced]);
+  useEffect(() => {
+    if (step !== 4 || !playing || draft.growthProgress >= 100) return;
+    const t = setInterval(
+      () =>
+        setState((s) => ({
+          ...s,
+          draft: {
+            ...s.draft,
+            growthProgress: Math.min(100, s.draft.growthProgress + 2),
+          },
+        })),
+      120,
+    );
+    return () => clearInterval(t);
+  }, [step, playing, draft.growthProgress >= 100]);
+  useEffect(() => {
+    if (draft.growthProgress >= 100) setPlaying(false);
+  }, [draft.growthProgress]);
+  useEffect(() => {
+    if (draft.mixProgress >= 1) {
+      clearInterval(autoRef.current);
+      setAutoMixing(false);
+    }
+  }, [draft.mixProgress]);
+  useEffect(
+    () => () => {
+      clearInterval(autoRef.current);
+      clearTimeout(noticeTimer.current);
+    },
+    [],
+  );
+  useEffect(() => {
+    const onPop = (e) => {
+      if (Number.isInteger(e.state?.bluegreenStep)) {
+        setPlaying(false);
+        clearInterval(autoRef.current);
+        setAutoMixing(false);
+        setState((s) => ({ ...s, step: e.state.bluegreenStep }));
+      }
+    };
+    window.history.replaceState({ bluegreenStep: step }, "");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  function notify(message) {
+    setNotice(message);
+    clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(""), 4500);
+  }
+  function move(n) {
+    setPlaying(false);
+    setAutoMixing(false);
+    clearInterval(autoRef.current);
+    setNotice("");
+    setState((s) => ({ ...s, step: n }));
+    window.history.pushState({ bluegreenStep: n }, "");
+  }
+  const closeOverlay = useCallback(() => setOverlay(null), []);
+  function modifyDraft(fn) {
+    setState((s) => ({ ...s, draft: fn(s.draft) }));
+  }
+  function portion(id, delta) {
+    if (
+      delta > 0 &&
+      (draft.portions[id] || 0) >= RULES.maxPortionsPerMaterial
+    ) {
+      notify(
+        "This jar has reached the 1,000-portion model limit. Remove a portion to change the blend.",
+      );
+      return;
+    }
+    clearInterval(autoRef.current);
+    setAutoMixing(false);
+    modifyDraft((d) => changePortion(d, id, delta));
+    notify(
+      delta > 0
+        ? `${MATERIALS.find((m) => m.id === id).name} added. Your mixture has changed.`
+        : "One portion removed. Your mixture has changed.",
+    );
+  }
+  function field(name, value) {
+    modifyDraft((d) =>
+      d[name] === value
+        ? d
+        : { ...d, [name]: value, runId: null, growthProgress: 0 },
+    );
+  }
+  function beginMix() {
+    modifyDraft((d) => ({ ...d, mixing: true, mixProgress: 0 }));
+  }
+  function stir(delta) {
+    modifyDraft((d) => ({
+      ...d,
+      mixProgress: Math.min(1, d.mixProgress + delta / (Math.PI * 4)),
+    }));
+  }
+  function autoMix() {
+    if (autoMixing) return;
+    setAutoMixing(true);
+    autoRef.current = setInterval(
+      () =>
+        modifyDraft((d) => ({
+          ...d,
+          mixProgress: Math.min(1, d.mixProgress + 0.06),
+        })),
+      90,
+    );
+  }
+  function startCultivation() {
+    if (Object.keys(recipe).length < 2 || draft.mixProgress < 1) return;
+    modifyDraft((d) => ({
+      ...d,
+      runId: newRunId(),
+      growthProgress: 0,
+    }));
+    move(4);
+    setPlaying(!reduced);
+  }
+  function finish() {
+    if (draft.growthProgress < 100) return;
+    const id = draft.runId || newRunId();
+    const existing = history.find((h) => h.id === id);
+    if (existing) {
+      setState((s) => ({ ...s, resultId: id }));
+      move(5);
+      return;
+    }
+    const entry = {
+      id,
+      number: nextNumber,
+      date: new Date().toISOString(),
+      recipe,
+      portions: { ...draft.portions },
+      moisture: draft.moisture,
+      temperature: draft.temperature,
+      days: draft.days,
+      treated: draft.treated,
+      ...evaluate({ ...draft, recipe }),
+      pinned: false,
+    };
+    setState((s) => ({
+      ...s,
+      history: [entry, ...s.history].slice(0, RULES.maxHistory),
+      resultId: id,
+      nextNumber: s.nextNumber + 1,
+      draft: { ...s.draft, runId: id },
+    }));
+    move(5);
+  }
+  function replaceDraft(next, after = 2, message = null) {
+    const action = () => {
+      setState((s) => ({ ...s, draft: next, resultId: null }));
+      setOverlay(null);
+      move(after);
+      if (message) notify(message);
+    };
+    if (
+      Object.keys(draft.portions).length &&
+      !history.some((h) => h.id === draft.runId)
+    )
+      setOverlay({
+        kind: "confirm",
+        action,
+        title: "Begin a new experiment?",
+        message:
+          "This will replace the current unfinished recipe. Recorded experiments will remain in your notebook.",
+      });
+    else action();
+  }
+  function newExperiment() {
+    replaceDraft(freshDraft());
+  }
+  function duplicate(entry) {
+    replaceDraft(
+      draftFromEntry(entry),
+      3,
+      entry.days == null || entry.treated == null
+        ? "This earlier recipe uses new defaults: 18 days and treated substrate. Review these settings before cultivation."
+        : null,
+    );
+  }
+  function openRecord(entry) {
+    setState((s) => ({ ...s, resultId: entry.id }));
+    move(5);
+  }
+  function retry() {
+    if (result) duplicate(result);
+    else move(3);
+  }
+  function saveResult() {
+    setState((s) => ({
+      ...s,
+      history: s.history.map((h) =>
+        h.id === resultId ? { ...h, pinned: true } : h,
+      ),
+    }));
+    notify("Experiment saved and pinned in your notebook.");
+  }
+  function resume() {
+    move(
+      draft.runId && draft.growthProgress > 0
+        ? 4
+        : draft.mixProgress >= 1
+          ? 3
+          : 2,
+    );
+  }
+  return (
+    <div className={`app-shell stage-${step}`}>
+      <header className="site-header">
+        <div className="header-left">
+          {step > 0 && (
+            <button
+              className="icon-button back-button"
+              aria-label="Go back"
+              onClick={() => move(step === 7 ? 6 : step - 1)}
+            >
+              <ArrowLeft size={19} />
+            </button>
+          )}
+          <button
+            className="wordmark"
+            aria-label="Return to Welcome"
+            onClick={() => move(0)}
+          >
+            BLUE<span>GREEN</span>
+            <i />
+          </button>
+        </div>
+        <span className="header-context">
+          {step === 0 ? "MATERIAL FUTURES / VOLUME 02" : STAGE_NAMES[step]}
+        </span>
+        <div className="header-right">
+          {step > 0 && (
+            <button
+              className="icon-button"
+              aria-label="Contextual Help"
+              onClick={() => setOverlay({ kind: "help" })}
+            >
+              <Info size={19} />
+            </button>
+          )}
+          <button
+            className="icon-button"
+            aria-label="Open navigation menu"
+            onClick={() => setOverlay({ kind: "menu" })}
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+      </header>
+      {step > 0 && (
+        <nav className="journey-progress" aria-label="Experiment journey">
+          {STAGE_NAMES.slice(1).map((name, i) => (
+            <button
+              key={name}
+              title={name}
+              aria-label={`Go to ${name}`}
+              aria-current={step === i + 1 ? "step" : undefined}
+              disabled={i + 1 > step}
+              onClick={() => move(i + 1)}
+              className={
+                step === i + 1 ? "active" : step > i + 1 ? "completed" : ""
+              }
+            >
+              <span />
+              <small>{String(i + 1).padStart(2, "0")}</small>
+            </button>
+          ))}
+          <span className="journey-caption">
+            {String(step + 1).padStart(2, "0")} / 08
+          </span>
+        </nav>
+      )}
+      <main ref={screenRef} tabIndex={-1} aria-label={STAGE_NAMES[step]}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{
+              opacity: 0,
+              scale: reduced ? 1 : 0.975,
+              y: reduced ? 0 : 12,
+            }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{
+              opacity: 0,
+              scale: reduced ? 1 : 1.025,
+              y: reduced ? 0 : -8,
+            }}
+            transition={{ duration: reduced ? 0 : 0.32 }}
+          >
+            {step === 0 && (
+              <Welcome
+                onEnter={() => move(1)}
+                onAbout={() => setOverlay({ kind: "help" })}
+                hasProgress={Object.keys(draft.portions).length > 0}
+                onResume={resume}
+              />
+            )}
+            {step === 1 && (
+              <LaboratoryIntroduction
+                onStart={() => move(2)}
+                onMaterial={(m) =>
+                  setOverlay({ kind: "material", material: m })
+                }
+              />
+            )}
+            {step === 2 && (
+              <MixingScreen
+                draft={draft}
+                recipe={recipe}
+                onPortion={portion}
+                onMaterial={(m) =>
+                  setOverlay({ kind: "material", material: m })
+                }
+                onBeginMix={beginMix}
+                onStir={stir}
+                onAuto={autoMix}
+                autoMixing={autoMixing}
+                onContinue={() => move(3)}
+                onNotice={notify}
+              />
+            )}
+            {step === 3 && (
+              <ConditionsScreen
+                draft={draft}
+                recipe={recipe}
+                onField={field}
+                onStart={startCultivation}
+                onReview={() => move(2)}
+              />
+            )}
+            {step === 4 && (
+              <GrowthScreen
+                draft={draft}
+                recipe={recipe}
+                playing={playing}
+                onPlay={() => setPlaying((p) => !p)}
+                onSkip={() => {
+                  modifyDraft((d) => ({ ...d, growthProgress: 100 }));
+                  setPlaying(false);
+                }}
+                onResults={finish}
+              />
+            )}
+            {step === 5 &&
+              (result ? (
+                <ResultPanel
+                  result={result}
+                  onExplore={() => move(6)}
+                  onRetry={retry}
+                  onDetails={() =>
+                    setOverlay({ kind: "details", entry: result })
+                  }
+                  onCompare={() => move(7)}
+                  onSave={saveResult}
+                />
+              ) : (
+                <section className="missing-result">
+                  <ScreenHeading
+                    eyebrow="YOUR LABORATORY"
+                    title="An experiment is waiting."
+                    description="Return to your recipe to create and cultivate a mixture."
+                  />
+                  <Button onClick={() => move(2)}>
+                    Return to the Laboratory
+                    <ArrowRight size={18} />
+                  </Button>
+                </section>
+              ))}
+            {step === 6 && (
+              <LifecycleGallery
+                result={result}
+                onNew={newExperiment}
+                onNotebook={() => move(7)}
+              />
+            )}
+            {step === 7 && (
+              <section className="notebook-screen">
+                <ScreenHeading
+                  eyebrow="YOUR EXPERIMENT NOTEBOOK"
+                  title={
+                    <>
+                      Some ideas
+                      <br />
+                      <em>deserve another page.</em>
+                    </>
+                  }
+                  description="A record of choices, connections and possibilities."
+                  center
+                />
+                <ExperimentNotebook
+                  history={history}
+                  onOpen={openRecord}
+                  onDuplicate={duplicate}
+                  onCompare={(entries) =>
+                    setOverlay({ kind: "compare", entries })
+                  }
+                />
+                <ActionDock>
+                  <Button onClick={newExperiment}>
+                    Run Another Experiment
+                    <RotateCcw size={17} />
+                  </Button>
+                  <Button secondary onClick={() => move(1)}>
+                    Return to the Laboratory
+                    <ArrowRight size={17} />
+                  </Button>
+                </ActionDock>
+              </section>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+      <footer className="site-footer">
+        <span>
+          <Leaf size={13} /> BLUEGREEN / MATERIAL FUTURES
+        </span>
+        <button onClick={() => setOverlay({ kind: "help" })}>
+          Research & Assumptions
+          <ArrowRight size={12} />
+        </button>
+        <span className="footer-local">NO ACCOUNTS. JUST CURIOSITY.</span>
+      </footer>
+      {(notice || storageError) && (
+        <div
+          className={`feedback-toast ${storageError ? "storage-error" : ""}`}
+          role="status"
+        >
+          <Check size={16} />
+          <p>
+            {storageError
+              ? "Device storage is unavailable. Your progress will stay in this session only."
+              : notice}
+          </p>
+        </div>
+      )}
+      {overlay && (
+        <Modal
+          title={
+            overlay.kind === "help"
+              ? "About This Experience"
+              : overlay.kind === "menu"
+                ? "Your Laboratory"
+                : overlay.kind === "material"
+                  ? overlay.material.name
+                  : overlay.kind === "confirm"
+                    ? overlay.title
+                    : overlay.kind === "compare"
+                      ? "Compare Experiments"
+                      : `Experiment ${overlay.entry.number} Details`
+          }
+          onClose={closeOverlay}
+          className={overlay.kind === "compare" ? "wide-modal" : ""}
+        >
+          {overlay.kind === "help" && <HelpContent step={step} />}
+          {overlay.kind === "material" && (
+            <>
+              <div
+                className="material-study"
+                style={{
+                  backgroundImage: `url(${import.meta.env.BASE_URL}images/materials.png)`,
+                  backgroundPosition: overlay.material.position,
+                }}
+              />
+              <p className="eyebrow">{overlay.material.label}</p>
+              <p>{overlay.material.description}</p>
+              <p>{overlay.material.detail}</p>
+              <Button secondary onClick={closeOverlay}>
+                Back to the Workbench
+                <ArrowRight size={16} />
+              </Button>
+            </>
+          )}
+          {overlay.kind === "menu" && (
+            <div className="menu-options">
+              <button
+                onClick={() => {
+                  setOverlay(null);
+                  move(0);
+                }}
+              >
+                <Home size={19} />
+                <span>
+                  Return to Welcome<small>Your recipe will be kept.</small>
+                </span>
+                <ArrowRight size={17} />
+              </button>
+              <button
+                onClick={() => {
+                  setOverlay(null);
+                  move(7);
+                }}
+              >
+                <BookOpen size={19} />
+                <span>
+                  View My Experiments<small>Open your field notebook.</small>
+                </span>
+                <ArrowRight size={17} />
+              </button>
+              <button onClick={newExperiment}>
+                <RotateCcw size={19} />
+                <span>
+                  Restart Experiment<small>Begin with an empty vessel.</small>
+                </span>
+                <ArrowRight size={17} />
+              </button>
+              <button onClick={() => setOverlay({ kind: "help" })}>
+                <Info size={19} />
+                <span>
+                  Help & Research<small>Explore our assumptions.</small>
+                </span>
+                <ArrowRight size={17} />
+              </button>
+            </div>
+          )}
+          {overlay.kind === "confirm" && (
+            <>
+              <p>{overlay.message}</p>
+              <div className="confirm-actions">
+                <Button secondary onClick={closeOverlay}>
+                  Keep My Experiment
+                </Button>
+                <Button onClick={overlay.action}>
+                  Begin New Experiment
+                  <ArrowRight size={16} />
+                </Button>
+              </div>
+            </>
+          )}
+          {overlay.kind === "details" && (
+            <>
+              <ExperimentSummary experiment={overlay.entry} />
+              <p className="fine-print">
+                Separate fixed illustrative mycelium starter · model v
+                {overlay.entry.modelVersion}. No inoculum proportion is included
+                in the waste recipe.
+              </p>
+              <h3>Recorded explanations</h3>
+              <ul className="details-reasons">
+                {overlay.entry.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {overlay.kind === "compare" && (
+            <ComparisonPanel experiments={overlay.entries} />
+          )}
+        </Modal>
+      )}
+    </div>
+  );
 }
-function SectionHead({number,tag,title,description}){return <div className="section-heading"><div><div className="eyebrow">{number} / {tag}</div><h2>{title}</h2></div><p>{description}</p></div>;}
-function Range({label,value,min,max,unit,onChange}){return <label className="range"><span>{label}<strong>{value}{unit}</strong></span><input aria-label={label} type="range" min={min} max={max} value={value} onChange={e=>onChange(Number(e.target.value))} style={{'--fill':`${(value-min)/(max-min)*100}%`}}/><small><span>{min}{unit}</span><span>{max}{unit}</span></small></label>;}
-function donut(r){let n=0;return `conic-gradient(${Object.entries(r).map(([id,v])=>{let start=n;n+=v;return `${MATERIALS.find(m=>m.id===id).tone} ${start}% ${n}%`;}).join(',')})`;}
-function Mycelium({progress,outcome}){const amount=outcome==='success'?1:outcome==='incomplete'?.58:.24;return <svg className="mycelium-art" viewBox="0 0 600 420" role="img" aria-label={`${outcome==='success'?'Connected':outcome==='incomplete'?'Partial':'Sparse'} illustrative mycelium network`}><defs><filter id="grain"><feTurbulence baseFrequency=".48" numOctaves="3" seed="4"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="soft-light"/></filter><radialGradient id="earth"><stop stopColor="#ad9173"/><stop offset="1" stopColor="#5c4836"/></radialGradient></defs><rect x="45" y="30" width="510" height="345" rx="100" fill="url(#earth)" filter="url(#grain)"/>{Array.from({length:80},(_,i)=>{const x=65+(i*137)%470,y=45+(i*79)%300;let visible=Math.max(0,Math.min(1,(progress/100*amount-i/110)*6));return <g key={i} opacity={visible} stroke="#eee8d5" fill="none" strokeLinecap="round"><path d={`M300 210 Q${x+20} ${y-30} ${x} ${y}m0 0q-20 -15 -30 -35m30 35q25 -18 36 -42m-20 25l22 8m-52 -13l-24 5`} strokeWidth={i%3===0?2.3:1.1}/><circle cx={x} cy={y} r={i%4+1} fill="#eee8d5"/></g>;})}</svg>;}
-createRoot(document.getElementById('root')).render(<App/>);
+createRoot(document.getElementById("root")).render(<App />);
