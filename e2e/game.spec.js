@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
 const key = "bluegreen-lab-v2";
+async function expectShares(page, shares) {
+  const inputs = page.locator(".recipe-number input");
+  await expect(inputs).toHaveCount(shares.length);
+  for (let i = 0; i < shares.length; i++)
+    await expect(inputs.nth(i)).toHaveValue(shares[i]);
+}
 async function begin(page) {
   await page.goto("");
   await page
@@ -17,9 +23,6 @@ async function begin(page) {
 }
 async function add(page, id) {
   await page.getByRole("button", { name: `Add ${id}`, exact: true }).click();
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
 }
 async function blend(page) {
   await page
@@ -88,8 +91,8 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await add(page, "Sawdust");
   await add(page, "Sawdust");
   await add(page, "Straw");
-  await expect(page.locator(".total-percent")).toHaveText("100%");
-  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expect(page.locator(".recipe-total strong")).toHaveText("100%");
+  await expectShares(page, ["50", "50"]);
   await shot(page, "mix-mobile");
   await assertEnglishAndLayout(page);
   await blend(page);
@@ -98,7 +101,7 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await page
     .getByRole("button", { name: "Review Recipe", exact: true })
     .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expectShares(page, ["50", "50"]);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
     .getByRole("button", { name: "Start Cultivation", exact: true })
@@ -249,14 +252,12 @@ test("pointer drag/drop, ingredient removal and genuine circular stirring", asyn
   await page.mouse.move(v.x + v.width / 2, v.y + v.height * 0.5, { steps: 15 });
   await expect(vessel).toHaveClass(/drop-active/);
   await page.mouse.up();
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
-  await expect(page.locator(".portion-name")).toContainText("Sawdust");
+  await expect(page.locator(".recipe-composition-row > label")).toContainText(
+    "Sawdust",
+  );
   await add(page, "Straw");
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
-    .getByRole("slider", { name: "Straw percentage", exact: true })
+    .getByRole("spinbutton", { name: "Straw exact percentage", exact: true })
     .fill("67");
   await expect(
     page.getByRole("spinbutton", {
@@ -267,10 +268,7 @@ test("pointer drag/drop, ingredient removal and genuine circular stirring", asyn
   await page
     .getByRole("slider", { name: "Straw percentage", exact: true })
     .fill("50");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expectShares(page, ["50", "50"]);
   await page
     .getByRole("button", { name: "Mix Ingredients", exact: true })
     .click();
@@ -333,10 +331,9 @@ test("touch pointer drag and stirring alternatives work without resetting back n
     touchPoints: [],
   });
   expect(errors).toEqual([]);
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
-  await expect(page.locator(".portion-name")).toContainText("Coffee Grounds");
+  await expect(page.locator(".recipe-composition-row > label")).toContainText(
+    "Coffee Grounds",
+  );
   await add(page, "Sawdust");
   await blend(page);
   await page
@@ -431,7 +428,7 @@ test("restart confirms before discarding and help traps keyboard focus", async (
   await page
     .getByRole("button", { name: "Keep My Experiment", exact: true })
     .click();
-  await expect(page.locator(".portion-row")).toHaveCount(2);
+  await expect(page.locator(".recipe-composition-row")).toHaveCount(2);
   await page
     .getByRole("button", { name: "Contextual Help", exact: true })
     .click();
@@ -455,8 +452,10 @@ test("restart confirms before discarding and help traps keyboard focus", async (
   await page
     .getByRole("button", { name: "Begin New Experiment", exact: true })
     .click();
-  await expect(page.locator(".portion-row")).toHaveCount(0);
-  await expect(page.locator(".total-percent")).toHaveText("EMPTY VESSEL");
+  await expect(page.locator(".recipe-composition-row")).toHaveCount(0);
+  await expect(page.locator(".recipe-empty")).toHaveText(
+    "Add ingredients to begin",
+  );
 });
 
 test("four-material recipe gets uncertainty, reduced motion and keyboard tap alternative", async ({
@@ -467,21 +466,14 @@ test("four-material recipe gets uncertainty, reduced motion and keyboard tap alt
   const jar = page.getByRole("button", { name: "Add Sawdust", exact: true });
   await jar.focus();
   await page.keyboard.press("Enter");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
   await add(page, "Coffee Grounds");
   await add(page, "Straw");
   await add(page, "Paper Fibres");
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
-  // Exact equal weights are loaded through the drawer's own controls by balancing sequentially.
+  // Inline ratio controls keep four positive shares within the unverified category.
   await page
     .getByRole("slider", { name: "Sawdust percentage", exact: true })
     .fill("25");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
-  await expect(page.locator(".portion-percentage")).toHaveCount(4);
+  await expect(page.locator(".recipe-number input")).toHaveCount(4);
   await blend(page);
   await page
     .getByRole("button", { name: "Start Cultivation", exact: true })
@@ -717,7 +709,7 @@ test("stirring is a distinct illustrated scene with substrate and no premature c
   await page
     .getByRole("button", { name: "Review Ingredients", exact: true })
     .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expectShares(page, ["50", "50"]);
   await expect(
     page.getByRole("heading", { name: "Mix Natural Ingredients", exact: true }),
   ).toBeVisible();

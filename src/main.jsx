@@ -26,6 +26,7 @@ import {
   referenceDraft,
   loadState,
   freshDraft,
+  startVisitor,
   changePortion,
   draftFromEntry,
 } from "./state";
@@ -322,6 +323,12 @@ function App() {
   function newExperiment() {
     replaceDraft(freshDraft());
   }
+  function enterVisitor(step = 1) {
+    setState((s) => startVisitor(s, step));
+    setOverlay(null);
+    setReplay(0);
+    move(step);
+  }
   function duplicate(entry) {
     replaceDraft(
       draftFromEntry(entry),
@@ -482,7 +489,7 @@ function App() {
           >
             {step === 0 && (
               <Welcome
-                onEnter={() => move(1)}
+                onEnter={() => enterVisitor(1)}
                 onAbout={() => setOverlay({ kind: "help" })}
                 hasProgress={
                   !!state.resumeDraft ||
@@ -493,7 +500,7 @@ function App() {
             )}
             {step === 1 && (
               <LaboratoryIntroduction
-                onStart={() => move(2)}
+                onStart={() => enterVisitor(2)}
                 onMaterial={(m) =>
                   setOverlay({ kind: "material", material: m })
                 }
@@ -513,10 +520,16 @@ function App() {
                 autoMixing={autoMixing}
                 onContinue={() => move(3)}
                 onNotice={notify}
-                onRecipeChange={(id, v) =>
-                  modifyDraft((d) => setIngredientPercent(d, id, v))
-                }
-                onRemove={(id) => modifyDraft((d) => removeIngredient(d, id))}
+                onRecipeChange={(id, v) => {
+                  clearInterval(autoRef.current);
+                  setAutoMixing(false);
+                  modifyDraft((d) => setIngredientPercent(d, id, v));
+                }}
+                onRemove={(id) => {
+                  clearInterval(autoRef.current);
+                  setAutoMixing(false);
+                  modifyDraft((d) => removeIngredient(d, id));
+                }}
                 onReference={() =>
                   replaceDraft(
                     referenceDraft(),
@@ -720,7 +733,8 @@ function App() {
               >
                 <Home size={19} />
                 <span>
-                  Return to Welcome<small>Your recipe will be kept.</small>
+                  Return to Welcome
+                  <small>Resume explicitly, or enter afresh.</small>
                 </span>
                 <ArrowRight size={17} />
               </button>

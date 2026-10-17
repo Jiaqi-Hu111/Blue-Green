@@ -4,6 +4,7 @@ import {
   loadState,
   persistState,
   freshDraft,
+  startVisitor,
   referenceDraft,
   setIngredientPercent,
   addIngredient,
@@ -36,6 +37,38 @@ const record = (id, number = 1) => ({
   outcome: "success",
   reasons: ["Original recorded reason."],
   customField: "preserve-me",
+});
+test("Enter and Begin clear every active field while retaining notebook records and privacy", () => {
+  const state = {
+    ...loadState(memory(), memory()),
+    step: 0,
+    draft: {
+      ...referenceDraft(),
+      temperature: 30,
+      moisture: 77,
+      days: 30,
+      treated: false,
+      mixing: true,
+      mixProgress: 1,
+      growthProgress: 100,
+      runId: "previous-visitor",
+    },
+    resultId: "previous-visitor",
+    resumeDraft: referenceDraft(),
+    history: [record("previous-visitor", 10)],
+    nextNumber: 11,
+    privacy: "session",
+  };
+  for (const step of [1, 2]) {
+    const fresh = startVisitor(state, step);
+    assert.equal(fresh.step, step);
+    assert.deepEqual(fresh.draft, freshDraft());
+    assert.equal(fresh.resultId, null);
+    assert.equal(fresh.resumeDraft, null);
+    assert.equal(fresh.history, state.history);
+    assert.equal(fresh.nextNumber, 11);
+    assert.equal(fresh.privacy, "session");
+  }
 });
 test("fresh visitor starts empty while all legacy records and raw data survive", () => {
   const raw = JSON.stringify({

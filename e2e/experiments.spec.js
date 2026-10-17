@@ -3,6 +3,12 @@ async function snapshot(page, options) {
   await expect(page.locator("main>div")).toHaveCSS("opacity", "1");
   await page.screenshot(options);
 }
+async function expectShares(page, shares) {
+  const inputs = page.locator(".recipe-number input");
+  await expect(inputs).toHaveCount(shares.length);
+  for (let i = 0; i < shares.length; i++)
+    await expect(inputs.nth(i)).toHaveValue(shares[i]);
+}
 async function begin(page) {
   await page.goto("");
   await page
@@ -14,9 +20,6 @@ async function begin(page) {
 }
 async function add(page, name) {
   await page.getByRole("button", { name: `Add ${name}`, exact: true }).click();
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
 }
 async function mix(page) {
   await page
@@ -47,7 +50,7 @@ const old = {
   customData: "untouched",
 };
 
-test("empty initialization, drawer percentages, reference result, new experiment and history preservation", async ({
+test("empty initialization, inline percentages, reference result, new experiment and history preservation", async ({
   page,
   context,
 }) => {
@@ -64,7 +67,7 @@ test("empty initialization, drawer percentages, reference result, new experiment
   await begin(page);
   await expect(page.locator(".vessel-materials")).toHaveCount(0);
   await expect(
-    page.getByText("Your vessel is empty.", { exact: true }),
+    page.getByText("Add ingredients to begin", { exact: true }),
   ).toBeVisible();
   await snapshot(page, {
     path: "/tmp/bluegreen-empty-vessel.png",
@@ -72,12 +75,11 @@ test("empty initialization, drawer percentages, reference result, new experiment
   });
   await add(page, "Sawdust");
   await add(page, "Straw");
-  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expectShares(page, ["50", "50"]);
   await snapshot(page, {
     path: "/tmp/bluegreen-two-ingredients.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
     .getByRole("spinbutton", { name: "Sawdust exact percentage", exact: true })
     .fill("60");
@@ -87,14 +89,10 @@ test("empty initialization, drawer percentages, reference result, new experiment
       exact: true,
     }),
   ).toHaveValue("40");
-  await expect(page.getByRole("dialog")).toHaveCSS("opacity", "1");
   await snapshot(page, {
-    path: "/tmp/bluegreen-recipe-drawer.png",
+    path: "/tmp/bluegreen-inline-recipe.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
   await snapshot(page, {
     path: "/tmp/bluegreen-ready-to-mix.png",
     fullPage: true,
@@ -128,7 +126,7 @@ test("empty initialization, drawer percentages, reference result, new experiment
   await page
     .getByRole("button", { name: "Optional Reference Recipe", exact: true })
     .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["60%", "40%"]);
+  await expectShares(page, ["60", "40"]);
   await mix(page);
   await result(page);
   await expect(page.locator(".outcome-badge").first()).toHaveText(
@@ -156,7 +154,6 @@ test("zero shares disable mixing, removal rebalances, editing after stirring res
   await begin(page);
   await add(page, "Sawdust");
   await add(page, "Straw");
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
     .getByRole("slider", { name: "Straw percentage", exact: true })
     .fill("0");
@@ -166,35 +163,23 @@ test("zero shares disable mixing, removal rebalances, editing after stirring res
       exact: true,
     }),
   ).toHaveValue("100");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
   await expect(
     page.getByRole("button", { name: "Mix Ingredients", exact: true }),
   ).toBeDisabled();
   await page.reload();
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
     .getByRole("slider", { name: "Straw percentage", exact: true })
     .fill("40");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
   await mix(page);
   await page
     .getByRole("button", { name: "Review Recipe", exact: true })
     .click();
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
     .getByRole("slider", { name: "Straw percentage", exact: true })
     .fill("45");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
   await expect(
     page.getByRole("button", { name: "Continue", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page.getByRole("button", { name: "Remove Straw", exact: true }).click();
   await expect(
     page.getByRole("spinbutton", {
@@ -202,10 +187,7 @@ test("zero shares disable mixing, removal rebalances, editing after stirring res
       exact: true,
     }),
   ).toHaveValue("100");
-  await page
-    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
-    .click();
-  await expect(page.locator(".portion-row")).toHaveCount(1);
+  await expect(page.locator(".recipe-composition-row")).toHaveCount(1);
 });
 
 test("session-only notebook records do not replace or erase existing device history", async ({

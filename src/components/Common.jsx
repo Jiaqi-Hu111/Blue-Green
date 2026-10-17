@@ -233,9 +233,13 @@ export function CompositionStrip({ recipe }) {
     <div
       className="composition-strip"
       role="img"
-      aria-label={`Recipe composition: ${Object.entries(recipe)
-        .map(([id, n]) => `${id} ${n}%`)
-        .join(", ")}`}
+      aria-label={`Recipe composition: ${
+        Object.keys(recipe).length
+          ? Object.entries(recipe)
+              .map(([id, n]) => `${id} ${n}%`)
+              .join(", ")
+          : "no ingredients selected"
+      }`}
     >
       <div
         style={{ background: "#b5956f", width: `${recipe.sawdust || 0}%` }}

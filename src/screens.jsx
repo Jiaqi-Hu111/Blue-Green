@@ -13,12 +13,11 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { positiveIngredientCount } from "./state";
-import { RecipeDrawer } from "./components/RecipeDrawer";
+import { RecipeComposition } from "./components/RecipeComposition";
 import { MATERIALS, evaluate } from "./simulation";
 import {
   LaboratoryScene,
   IngredientJar,
-  IngredientTray,
   MixingVessel,
   StirringInteraction,
 } from "./components/Laboratory";
@@ -84,7 +83,7 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
           </Button>
           {hasProgress && (
             <button className="text-link resume-link" onClick={onResume}>
-              Continue Your Experiment
+              Resume Previous Experiment
               <ArrowUpRight size={15} />
             </button>
           )}
@@ -173,12 +172,10 @@ export function MixingScreen({
 }) {
   const ref = useRef(null),
     [ghost, setGhost] = useState(null),
-    [dropKey, setDropKey] = useState(0),
-    [drawer, setDrawer] = useState(false);
+    [dropKey, setDropKey] = useState(0);
   function add(id) {
     onPortion(id, 1);
     setDropKey((k) => k + 1);
-    setDrawer(true);
   }
   const count = positiveIngredientCount(recipe);
   return (
@@ -264,34 +261,12 @@ export function MixingScreen({
           {MATERIALS.find((m) => m.id === ghost.id).name}
         </div>
       )}
-      {!draft.mixing && (
-        <IngredientTray
-          portions={draft.portions}
-          recipe={recipe}
-          onEdit={() => setDrawer(true)}
-        />
-      )}
-      {!draft.mixing && (
-        <div className="reference-recipe">
-          <button className="text-link" onClick={onReference}>
-            Optional Reference Recipe
-          </button>
-          <p className="fine-print">
-            60% sawdust + 40% straw, 62% moisture, 24°C, 18 days, treated.
-            Favourable in this educational model; real biological success is not
-            guaranteed.
-          </p>
-        </div>
-      )}
-      {drawer && (
-        <RecipeDrawer
-          draft={draft}
-          recipe={recipe}
-          onChange={onRecipeChange}
-          onRemove={onRemove}
-          onClose={() => setDrawer(false)}
-        />
-      )}
+      <RecipeComposition
+        draft={draft}
+        recipe={recipe}
+        onChange={onRecipeChange}
+        onRemove={onRemove}
+      />
       {!draft.mixing && draft.mixProgress < 1 && (
         <StirringInteraction
           mixing={false}
@@ -317,6 +292,18 @@ export function MixingScreen({
             <ArrowRight size={18} />
           </Button>
         </ActionDock>
+      )}
+      {!draft.mixing && (
+        <div className="reference-recipe">
+          <button className="text-link" onClick={onReference}>
+            Optional Reference Recipe
+          </button>
+          <p className="fine-print">
+            60% sawdust + 40% straw, 62% moisture, 24°C, 18 days, treated.
+            Favourable in this educational model; real biological success is not
+            guaranteed.
+          </p>
+        </div>
       )}
     </section>
   );
