@@ -305,7 +305,7 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
     await page
       .getByRole("button", { name: "Skip Animation", exact: true })
       .click();
-    await expect(canvas).toHaveAttribute("data-iterations", "240");
+    await expect(canvas).toHaveAttribute("data-iterations", "720");
     coverage.push(Number(await canvas.getAttribute("data-coverage")));
     await snapshot(page, {
       path: `/tmp/growth-${outcome}-assessment.png`,
@@ -314,21 +314,22 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
     // Transparent pixels outside the exact substrate path prove the network cannot escape onto the UI.
     const leak = await canvas.evaluate((el) => {
       const c = el.getContext("2d"),
-        data = c.getImageData(0, 0, 400, 330).data;
-      for (let x = 0; x < 400; x++)
-        for (const y of [0, 20, 40, 310, 329])
-          if (data[(y * 400 + x) * 4 + 3]) return true;
+        data = c.getImageData(0, 0, el.width, el.height).data;
+      for (let x = 0; x < el.width; x++)
+        for (const y of [0, 20, 40, el.height - 20, el.height - 1])
+          if (data[(y * el.width + x) * 4 + 3]) return true;
       return false;
     });
     expect(leak).toBe(false);
     await page
       .getByRole("button", { name: "Restart Animation", exact: true })
       .click();
+    await page.getByRole("button", { name: "Pause", exact: true }).click();
     await expect(canvas).toHaveAttribute("data-stage", "preparation");
     await page
       .getByRole("button", { name: "Skip Animation", exact: true })
       .click();
-    await expect(canvas).toHaveAttribute("data-iterations", "240");
+    await expect(canvas).toHaveAttribute("data-iterations", "720");
     expect(Number(await canvas.getAttribute("data-coverage"))).toBe(
       coverage.at(-1),
     );
