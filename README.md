@@ -30,7 +30,7 @@ Open `http://localhost:4173/Blue-Green/`. The primary mobile viewport is **390 �
 3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. A permanently visible parchment Recipe Composition panel sits below the vessel, with 5% sliders, exact percentage inputs and direct removal. Nonempty blends always total 100%; zero-share selections remain editable.
 4. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
 5. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
-6. **Watch Mycelium Grow** — observe four input-dependent, agent-based Canvas growth phases. Pause, play or skip. Reduced-motion mode begins paused; sequence progress is not measured colonization.
+6. **Watch Mycelium Grow** — observe four input-dependent, agent-based Canvas growth phases. Pause, play, replay or skip. Expand Network shows the same active field in a closer observation view. The network keeps evolving at assessment while Play is active. Reduced-motion mode begins paused; sequence progress is not measured colonization.
 7. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
 8. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
 9. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
@@ -108,7 +108,7 @@ npm run test:e2e
 
 ## GitHub Pages and review
 
-This redesign is prepared on **`fix/visitor-start-inline-recipe`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved. Each build emits a commit-SHA `version.json`; visitors get a safe, optional Update prompt for later deployments. Runtime images now have content-based filenames. GitHub Pages HTTP headers remain controlled by GitHub, not by this app.
+This redesign is prepared on **`refine/physarum-network-feedback`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved. Each build emits a commit-SHA `version.json`; visitors get a safe, optional Update prompt for later deployments. Runtime images now have content-based filenames. GitHub Pages HTTP headers remain controlled by GitHub, not by this app.
 
 The repository is **Jiaqi-Hu111/Blue-Green**, with the case-sensitive Vite base **`/Blue-Green/`**. Screen navigation uses React state and browser history on the same document; no nested server routes or SPA redirect workaround are needed.
 
@@ -123,5 +123,7 @@ The deployment installs from the lockfile, runs unit tests, builds Vite, and upl
 ## Artwork
 
 The current scenes use original `coastal-storybook.png` scenery and an `illustrated-materials.png` atlas, with independent SVG environmental layers and interactive objects. The reference boards are never rendered as screens. Earlier assets are retained for provenance. All imagery is illustrative, not a physical experiment record. See [the art-direction and reference mapping](docs/storybook-design.md) for details. No external image URL is required at runtime.
+
+See [the network refinement review](docs/network-refinement.md) for before/after recordings, actual captures, algorithm parameters, performance observations and the scientific evidence/assumptions table. New completions save input-specific model feedback and suggested comparisons; historical explanations are retained.
 
 The observation canvas is a **Mycelium-inspired generative visualisation**, adapted from agent/trail concepts in a Physarum slime mold model. Physarum is not fungal mycelium. See [attribution and licensing](THIRD_PARTY_NOTICES.md). The animation never determines the educational outcome.

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -14,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { MATERIALS, percentages, evaluate } from "./simulation";
+import { describeExperiment } from "./outcomeFeedback";
 import {
   persistState,
   HISTORY_KEY,
@@ -97,7 +104,7 @@ function App() {
     autoRef = useRef(null),
     noticeTimer = useRef(null);
   const stirringView = step === 2 && draft.mixing;
-  const recipe = percentages(draft.portions),
+  const recipe = useMemo(() => percentages(draft.portions), [draft.portions]),
     result = history.find((h) => h.id === resultId);
   useEffect(() => {
     try {
@@ -110,7 +117,10 @@ function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
     const t = setTimeout(
-      () => screenRef.current?.focus({ preventScroll: true }),
+      () => {
+        if (!document.querySelector('[role="dialog"]'))
+          screenRef.current?.focus({ preventScroll: true });
+      },
       reduced ? 0 : 400,
     );
     return () => clearTimeout(t);
@@ -145,9 +155,6 @@ function App() {
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [step, playing, pageVisible, draft.growthProgress >= 100]);
-  useEffect(() => {
-    if (draft.growthProgress >= 100) setPlaying(false);
-  }, [draft.growthProgress]);
   useEffect(() => {
     if (draft.mixProgress >= 1) {
       clearInterval(autoRef.current);
@@ -272,6 +279,7 @@ function App() {
       move(5);
       return;
     }
+    const assessment = evaluate({ ...draft, recipe });
     const entry = {
       id,
       number: nextNumber,
@@ -282,7 +290,8 @@ function App() {
       temperature: draft.temperature,
       days: draft.days,
       treated: draft.treated,
-      ...evaluate({ ...draft, recipe }),
+      ...assessment,
+      feedback: describeExperiment({ ...draft, recipe }, assessment.outcome),
       pinned: false,
       storageMode: state.privacy,
     };
@@ -553,7 +562,7 @@ function App() {
             )}
             {step === 4 && (
               <GrowthScreen
-                key={replay}
+                replayToken={replay}
                 draft={draft}
                 recipe={recipe}
                 playing={playing}

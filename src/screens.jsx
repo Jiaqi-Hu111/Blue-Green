@@ -401,6 +401,7 @@ export function GrowthScreen({
   onSkip,
   onResults,
   onRestart,
+  replayToken,
 }) {
   const verdict = evaluate({ ...draft, recipe }),
     progress = draft.growthProgress,
@@ -427,6 +428,10 @@ export function GrowthScreen({
             recipe={recipe}
             progress={progress}
             outcome={verdict.outcome}
+            playing={playing}
+            onPlay={onPlay}
+            onReplay={onRestart}
+            replayToken={replayToken}
             seedKey={JSON.stringify({
               recipe,
               moisture: draft.moisture,
@@ -464,7 +469,7 @@ export function GrowthScreen({
           <p>{GROWTH_PHASES[phase].text}</p>
         </div>
         <div className="growth-playback">
-          <Button secondary onClick={onPlay} disabled={progress >= 100}>
+          <Button secondary onClick={onPlay}>
             {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
             {playing ? "Pause" : "Play"}
           </Button>
@@ -500,7 +505,8 @@ export function GrowthScreen({
       </details>
       <p className="assumption-note">
         Accelerated illustrative timeline. Sequence progress is not a measured
-        colonization percentage.
+        colonization percentage. At assessment, the network keeps evolving while
+        Play is active.
       </p>
       {verdict.outcome === "unverified" && (
         <Guide

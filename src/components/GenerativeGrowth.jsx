@@ -1,122 +1,46 @@
-import { useRef, useEffect, useState, useId } from "react";
+import { useRef, useEffect, useState, useId, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
+import { Play, Pause, Maximize2, RotateCcw } from "lucide-react";
 import { MATERIALS, OUTCOMES } from "../simulation";
 import {
   TrailNetwork,
   SUBSTRATE_PATH,
   growthTarget,
   hashSeed,
+  visualQuality,
 } from "../growthModel";
-import { asset } from "./Common";
-export function GenerativeGrowth({ recipe, outcome, progress, seedKey }) {
-  const id = useId().replaceAll(":", ""),
-    canvas = useRef(null),
-    scheduleRef = useRef(null),
-    progressRef = useRef(progress),
-    [fallback, setFallback] = useState(false);
-  progressRef.current = progress;
-  const seed = hashSeed(seedKey),
-    composition = JSON.stringify(recipe);
-  useEffect(() => {
-    const node = canvas.current;
-    let context, path, texture, network;
-    try {
-      context = node?.getContext("2d");
-      if (!context || typeof Path2D === "undefined")
-        throw Error("Canvas unavailable");
-      path = new Path2D(SUBSTRATE_PATH);
-      network = new TrailNetwork({ outcome, seed });
-      texture = document.createElement("canvas");
-      texture.width = network.width;
-      texture.height = network.height;
-    } catch {
-      setFallback(true);
-      return;
-    }
-    const ink = texture.getContext("2d"),
-      pixels = ink?.createImageData(network.width, network.height);
-    if (!ink || !pixels) {
-      setFallback(true);
-      return;
-    }
-    let frame = 0,
-      lastTarget = -1,
-      disposed = false;
-    function paint() {
-      const target = growthTarget(progressRef.current);
-      if (target < network.iteration)
-        network = new TrailNetwork({ outcome, seed });
-      const done = network.advanceTo(target, target >= 240 ? Infinity : 8);
-      if (target !== lastTarget || !done) {
-        lastTarget = done ? target : -1;
-        for (let i = 0; i < network.field.length; i++) {
-          const at = i * 4;
-          pixels.data[at] = 249;
-          pixels.data[at + 1] = 242;
-          pixels.data[at + 2] = 218;
-          pixels.data[at + 3] = Math.min(
-            185,
-            Math.max(0, (network.veins[i] - 0.15) * 150),
-          );
-        }
-        ink.putImageData(pixels, 0, 0);
-        context.clearRect(0, 0, 400, 330);
-        if (progressRef.current >= 20) {
-          context.save();
-          context.clip(path);
-          context.drawImage(texture, 58, 66, 292, 213);
-          context.restore();
-        }
-        node.dataset.iterations = String(network.iteration);
-        node.dataset.coverage = String(network.coverage());
-      }
-      if (!disposed && !document.hidden && !done)
-        frame = requestAnimationFrame(paint);
-    }
-    function visibility() {
-      cancelAnimationFrame(frame);
-      if (!document.hidden) frame = requestAnimationFrame(paint);
-    }
-    scheduleRef.current = visibility;
-    document.addEventListener("visibilitychange", visibility);
-    frame = requestAnimationFrame(paint);
-    return () => {
-      disposed = true;
-      scheduleRef.current = null;
-      cancelAnimationFrame(frame);
-      document.removeEventListener("visibilitychange", visibility);
-      context.clearRect(0, 0, 400, 330);
-      texture.width = 0;
-      texture.height = 0;
-    };
-  }, [seed, outcome, composition]);
-  // A completed/skipped frame needs rendering even after the previous RAF loop stopped.
-  useEffect(() => {
-    scheduleRef.current?.();
-    if (canvas.current)
-      canvas.current.dataset.stage =
-        progress < 20
-          ? "preparation"
-          : progress < 45
-            ? "early"
-            : progress < 80
-              ? "network"
-              : "assessment";
-  }, [progress]);
+import { asset, Modal, Button } from "./Common";
+
+const NetworkSurface = memo(function NetworkSurface({
+  recipe,
+  outcome,
+  canvasRef,
+  expanded = false,
+  fallback,
+  networkVisible,
+}) {
+  const id = useId().replaceAll(":", "");
   let offset = 68;
   return (
     <div
       className="generative-growth"
       role="img"
-      aria-label={`${OUTCOMES[outcome]?.label || outcome}: mycelium-inspired generative visualisation`}
+      aria-label={
+        (OUTCOMES[outcome]?.label || outcome) +
+        ": mycelium-inspired generative visualisation"
+      }
     >
-      <svg viewBox="0 0 400 330" aria-hidden="true">
+      <svg
+        viewBox={expanded ? "45 60 312 225" : "0 0 400 330"}
+        aria-hidden="true"
+      >
         <defs>
-          <clipPath id={`substrate-${id}`}>
+          <clipPath id={"substrate-" + id}>
             <path d={SUBSTRATE_PATH} />
           </clipPath>
           {MATERIALS.map((m, i) => (
             <pattern
-              id={`material-${id}-${m.id}`}
+              id={"material-" + id + m.id}
               key={m.id}
               width="180"
               height="180"
@@ -138,10 +62,9 @@ export function GenerativeGrowth({ recipe, outcome, progress, seedKey }) {
           transform="translate(0 7)"
           fill="#b19165"
           stroke="#35413a"
-          strokeWidth="1"
         />
-        <g clipPath={`url(#substrate-${id})`}>
-          <path d={SUBSTRATE_PATH} fill="#9e845f" />
+        <g clipPath={"url(#substrate-" + id + ")"}>
+          <path d={SUBSTRATE_PATH} fill="#364d40" />
           {MATERIALS.filter((m) => (recipe[m.id] || 0) > 0).map((m) => {
             const x = offset,
               width = (recipe[m.id] / 100) * 284;
@@ -153,12 +76,60 @@ export function GenerativeGrowth({ recipe, outcome, progress, seedKey }) {
                 y="66"
                 width={width + 1}
                 height="215"
-                fill={`url(#material-${id}-${m.id})`}
-                opacity=".82"
+                fill={"url(#material-" + id + m.id + ")"}
+                opacity=".53"
               />
             );
           })}
         </g>
+      </svg>
+      <canvas
+        ref={canvasRef}
+        width={expanded ? 1000 : 800}
+        height={expanded ? 721 : 660}
+        className="network-canvas"
+        data-testid={expanded ? "expanded-network" : "growth-network"}
+        data-expanded={expanded}
+        aria-hidden="true"
+      />
+      {fallback && networkVisible && (
+        <svg
+          className="network-fallback"
+          viewBox={expanded ? "45 60 312 225" : "0 0 400 330"}
+          aria-hidden="true"
+        >
+          <defs>
+            <clipPath id={"fallback-" + id}>
+              <path d={SUBSTRATE_PATH} />
+            </clipPath>
+          </defs>
+          <g
+            clipPath={"url(#fallback-" + id + ")"}
+            stroke="#f6efd9"
+            strokeWidth=".8"
+            fill="none"
+            opacity={outcome === "failed" ? ".35" : ".75"}
+          >
+            {Array.from({ length: 12 }, (_, i) => (
+              <path
+                key={i}
+                d={
+                  "M45 " +
+                  (75 + i * 18) +
+                  "q35-22 70 0t70 0t70 0t70 0 M" +
+                  (65 + i * 24) +
+                  " 60q-20 28 0 56t0 56t0 56t0 56"
+                }
+              />
+            ))}
+          </g>
+        </svg>
+      )}
+      <svg
+        className="substrate-outline"
+        viewBox={expanded ? "45 60 312 225" : "0 0 400 330"}
+        aria-hidden="true"
+      >
         <path
           d={SUBSTRATE_PATH}
           fill="none"
@@ -166,57 +137,275 @@ export function GenerativeGrowth({ recipe, outcome, progress, seedKey }) {
           strokeWidth="1.2"
         />
       </svg>
-      <canvas
-        ref={canvas}
-        width="400"
-        height="330"
-        className="network-canvas"
-        data-testid="growth-network"
-        aria-hidden="true"
-      />
-      {fallback && progress >= 20 && (
-        <svg
-          className="network-fallback"
-          viewBox="0 0 400 330"
-          aria-hidden="true"
-        >
-          <defs>
-            <clipPath id={`fallback-${id}`}>
-              <path d={SUBSTRATE_PATH} />
-            </clipPath>
-          </defs>
-          <g
-            clipPath={`url(#fallback-${id})`}
-            stroke="#f6efd9"
-            fill="none"
-            opacity={
-              outcome === "failed"
-                ? ".3"
-                : outcome === "incomplete"
-                  ? ".55"
-                  : ".85"
-            }
-          >
-            {Array.from(
-              {
-                length:
-                  outcome === "failed" ? 5 : outcome === "incomplete" ? 13 : 28,
-              },
-              (_, i) => (
-                <path
-                  key={i}
-                  d={`M200 170q${((i * 31) % 160) - 80} ${((i * 47) % 120) - 60} ${((i * 53) % 270) - 135} ${((i * 29) % 160) - 80}m-20 0l12-20m-5 6 20 3`}
-                />
-              ),
-            )}
-          </g>
-        </svg>
-      )}
       {fallback && (
         <span className="canvas-fallback-note">
           Static illustrative frame · Canvas unavailable
         </span>
       )}
+    </div>
+  );
+});
+
+export function GenerativeGrowth({
+  recipe,
+  outcome,
+  progress,
+  seedKey,
+  playing,
+  onPlay,
+  onReplay,
+  replayToken = 0,
+}) {
+  const canvas = useRef(null),
+    expandedCanvas = useRef(null),
+    wake = useRef(null);
+  const current = useRef({ progress, playing });
+  const previous = useRef({ progress, playing });
+  current.current = { progress, playing };
+  const [fallback, setFallback] = useState(false),
+    [expanded, setExpanded] = useState(false);
+  const closeObservation = useCallback(() => setExpanded(false), []);
+  const [quality] = useState(() =>
+    visualQuality({
+      width: window.innerWidth,
+      memory: navigator.deviceMemory || 8,
+    }),
+  );
+  const engineQuality = useRef(null);
+  const seed = hashSeed(seedKey),
+    composition = JSON.stringify(recipe);
+  useEffect(() => {
+    let network, path, texture, ink, pixels;
+    try {
+      if (!canvas.current?.getContext("2d") || typeof Path2D === "undefined")
+        throw Error("Canvas unavailable");
+      path = new Path2D(SUBSTRATE_PATH);
+      network = new TrailNetwork({ outcome, seed, ...quality });
+      if (!engineQuality.current) {
+        // Calibrate once before the first visible field. Retain the chosen tier
+        // across Replay/Expand; never resize or replace an established network.
+        const samples = [];
+        for (let i = 0; i < 8; i++) {
+          const start = performance.now();
+          network.step();
+          if (i >= 4) samples.push(performance.now() - start);
+        }
+        const median = samples.sort((a, b) => a - b)[2];
+        engineQuality.current =
+          median > 3.5 ? { width: 192, height: 136 } : quality;
+      }
+      network = new TrailNetwork({ outcome, seed, ...engineQuality.current });
+      texture = document.createElement("canvas");
+      texture.width = network.width;
+      texture.height = network.height;
+      ink = texture.getContext("2d");
+      pixels = ink?.createImageData(network.width, network.height);
+      if (!pixels) throw Error("Canvas unavailable");
+    } catch {
+      setFallback(true);
+      return;
+    }
+    setFallback(false);
+    let frame = 0,
+      disposed = false,
+      lastTime = 0,
+      debt = 0,
+      force = true,
+      painted = -1;
+    let coverage = 0;
+    let recoveryTarget = growthTarget(current.current.progress);
+    const metrics = {
+      stepMs: [],
+      frameMs: [],
+      workMs: [],
+      quality: engineQuality.current,
+      agents: network.count,
+    };
+    const remember = (list, value) => {
+      if (list.length >= 600) list.shift();
+      list.push(value);
+    };
+    function paint(now) {
+      frame = 0;
+      if (disposed || document.hidden) {
+        lastTime = 0;
+        return;
+      }
+      const { progress, playing } = current.current;
+      const started = performance.now();
+      if (lastTime && playing) remember(metrics.frameMs, now - lastTime);
+      if (playing && progress >= 20)
+        debt = Math.min(
+          12,
+          debt + (lastTime ? Math.min(100, now - lastTime) : 16.67) * 0.09,
+        );
+      else debt = 0;
+      lastTime = now;
+      let steps = 0;
+      while (
+        progress >= 20 &&
+        (network.iteration < recoveryTarget || debt >= 1) &&
+        steps < 12
+      ) {
+        const before = performance.now();
+        network.step();
+        remember(metrics.stepMs, performance.now() - before);
+        debt = Math.max(0, debt - 1);
+        steps++;
+        if (performance.now() - started > 7) break;
+      }
+      if (painted !== network.iteration || force) {
+        const reveal = Math.min(1, Math.max(0, (progress - 20) / 8));
+        let covered = 0;
+        for (let i = 0; i < network.field.length; i++) {
+          const at = i * 4,
+            value = network.field[i];
+          if (value * network.visibilityAt(i) > 1.5) covered++;
+          pixels.data[at] = outcome === "unverified" ? 231 : 249;
+          pixels.data[at + 1] = outcome === "unverified" ? 237 : 242;
+          pixels.data[at + 2] = outcome === "unverified" ? 210 : 218;
+          pixels.data[at + 3] =
+            Math.max(0, (value - 0.35) / (value + 4)) *
+            245 *
+            reveal *
+            network.visibilityAt(i);
+        }
+        ink.putImageData(pixels, 0, 0);
+        painted = network.iteration;
+        coverage = covered / network.field.length;
+      }
+      for (const node of [canvas.current, expandedCanvas.current]) {
+        if (!node) continue;
+        // The laboratory is obscured by the modal. Paint one visible surface;
+        // closing it repaints the lab from this same field without stepping.
+        if (
+          node === (expandedCanvas.current || canvas.current) &&
+          (steps || force)
+        ) {
+          const context = node.getContext("2d");
+          const detail = node.dataset.expanded === "true";
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.clearRect(0, 0, node.width, node.height);
+          const sx = node.width / (detail ? 312 : 400),
+            sy = node.height / (detail ? 225 : 330);
+          context.setTransform(
+            sx,
+            0,
+            0,
+            sy,
+            detail ? -45 * sx : 0,
+            detail ? -60 * sy : 0,
+          );
+          context.save();
+          context.clip(path);
+          context.drawImage(texture, 58, 66, 292, 213);
+          context.restore();
+        }
+        node.dataset.iterations = String(network.iteration);
+        node.dataset.coverage = String(coverage);
+        node.dataset.seed = String(seed);
+        node.dataset.stage =
+          progress < 20
+            ? "preparation"
+            : progress < 45
+              ? "early"
+              : progress < 80
+                ? "network"
+                : "assessment";
+        node.__bluegreenMetrics = metrics;
+      }
+      force = false;
+      remember(metrics.workMs, performance.now() - started);
+      if (playing || network.iteration < recoveryTarget)
+        frame = requestAnimationFrame(paint);
+    }
+    function schedule({ reconstruct = false, resetClock = false } = {}) {
+      cancelAnimationFrame(frame);
+      if (resetClock || document.hidden) lastTime = 0;
+      force = true;
+      if (reconstruct)
+        recoveryTarget = Math.max(
+          recoveryTarget,
+          growthTarget(current.current.progress),
+        );
+      if (!document.hidden) frame = requestAnimationFrame(paint);
+    }
+    wake.current = schedule;
+    const visibility = () => schedule({ resetClock: true });
+    document.addEventListener("visibilitychange", visibility);
+    schedule();
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      wake.current = null;
+      document.removeEventListener("visibilitychange", visibility);
+      texture.width = 0;
+      texture.height = 0;
+    };
+  }, [seed, outcome, composition, quality, replayToken]);
+  // React updates only control/stage state; simulation steps and painting stay outside React.
+  useEffect(() => {
+    wake.current?.({
+      reconstruct:
+        progress >= 100 && previous.current.progress < 100 && !playing,
+      resetClock: previous.current.playing !== playing,
+    });
+    previous.current = { progress, playing };
+  }, [progress, playing]);
+  useEffect(() => {
+    wake.current?.();
+  }, [expanded]);
+  return (
+    <div className="generative-observation">
+      <NetworkSurface
+        recipe={recipe}
+        outcome={outcome}
+        canvasRef={canvas}
+        fallback={fallback}
+        networkVisible={progress >= 20}
+      />
+      <button
+        className="text-link expand-network"
+        onClick={() => setExpanded(true)}
+      >
+        <Maximize2 size={14} />
+        Expand Network
+      </button>
+      {expanded &&
+        createPortal(
+          <Modal
+            title="Network Observation"
+            onClose={closeObservation}
+            className="network-observer"
+          >
+            <p className="observation-note">
+              The same active network, seen closer. Physarum-inspired artwork;
+              not measured fungal growth.
+            </p>
+            <div className="observation-surface">
+              <NetworkSurface
+                recipe={recipe}
+                outcome={outcome}
+                canvasRef={expandedCanvas}
+                expanded
+                fallback={fallback}
+                networkVisible={progress >= 20}
+              />
+            </div>
+            <div className="observation-controls">
+              <Button secondary onClick={onPlay}>
+                {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
+                {playing ? "Pause" : "Play"}
+              </Button>
+              <Button secondary onClick={onReplay}>
+                <RotateCcw size={16} />
+                Replay
+              </Button>
+            </div>
+            <Button onClick={closeObservation}>Return to Laboratory</Button>
+          </Modal>,
+          document.body,
+        )}
     </div>
   );
 }

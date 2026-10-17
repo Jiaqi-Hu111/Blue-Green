@@ -3730,3 +3730,171 @@ input {
 .deployment-update > span {
   font-size: 16px;
 }
+/* A closer observation of the same engine; the laboratory artwork stays intact. */
+.substrate-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.growth-vessel-reflection {
+  z-index: 3;
+}
+.expand-network {
+  margin: -18px auto 12px;
+  position: relative;
+  z-index: 4;
+  font-size: 12px;
+  padding: 0 16px;
+  border: 1px solid #71816888;
+  border-radius: 30px;
+  background: #f3ebd9db;
+}
+.network-observer {
+  max-width: 960px;
+}
+.network-observer > h2 {
+  font-size: 30px;
+}
+.observation-note {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #53664d;
+  margin-bottom: 18px;
+}
+.observation-surface {
+  max-width: min(100%, calc(52dvh * 312 / 225));
+  margin: 0 auto;
+}
+.observation-controls {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0 12px;
+}
+.observation-controls > .button {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  justify-content: center;
+}
+.network-observer > .button {
+  width: 100%;
+}
+.educational-feedback {
+  margin-top: 28px;
+  border-top: 1px solid #71816866;
+  padding-top: 24px;
+}
+.educational-feedback h2 {
+  font-size: 27px;
+}
+.educational-feedback > p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 14px 0;
+}
+.feedback-factors {
+  margin: 0;
+}
+.feedback-factors > div {
+  padding: 15px 0;
+  border-bottom: 1px solid #71816844;
+}
+.feedback-factors dt {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.factor-status {
+  font:
+    9px Arial,
+    sans-serif;
+  color: #53664d;
+  white-space: nowrap;
+}
+.factor-status.limiting,
+.factor-status.outside {
+  color: #7c593b;
+}
+.factor-status.risk {
+  color: #815344;
+}
+.feedback-factors dd {
+  margin: 9px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.educational-feedback h3 {
+  font-size: 22px;
+  margin-top: 24px;
+}
+.feedback-adjustments {
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.feedback-adjustments > li {
+  margin: 12px 0;
+}
+.result-evidence {
+  max-width: 1000px;
+  margin: 32px auto 0;
+  padding: 0 24px;
+}
+.result-evidence > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 0;
+  font:
+    20px Georgia,
+    serif;
+}
+.result-evidence > p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.evidence-table-scroll {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+.result-evidence table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: left;
+}
+.result-evidence caption {
+  text-align: left;
+  padding: 12px 0;
+  font:
+    18px Georgia,
+    serif;
+}
+.result-evidence th,
+.result-evidence td {
+  width: 50%;
+  padding: 14px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid #71816855;
+  font-weight: 400;
+}
+.result-evidence th p {
+  margin: 8px 0;
+}
+.result-evidence th a {
+  display: block;
+  font-size: 10px;
+  text-decoration: underline;
+  padding: 5px 0;
+}
+.result-evidence thead th {
+  font-size: 12px;
+  background: #b8c8aa44;
+}
