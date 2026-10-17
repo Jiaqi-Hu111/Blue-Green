@@ -1,6 +1,6 @@
 # BLUEGREEN — Mycelium Lab
 
-A premium playable ecological laboratory about material lifecycle and waste transformation. Built with React, Vite, Tailwind CSS and Motion. All website text is English. No backend, accounts or external runtime image services are required.
+A vintage botanical storybook ecological laboratory about material lifecycle and waste transformation. Built with React, Vite, Tailwind CSS and Motion. All website text is English. No backend, accounts or external runtime image services are required.
 
 ## Run the exhibition
 
@@ -23,16 +23,17 @@ npm run preview
 
 Open `http://localhost:4173/Blue-Green/`. The primary mobile viewport is **390 × 844**, with responsive compact-phone, tablet and desktop layouts and safe-area support.
 
-## Eight connected stages
+## Nine visible stages
 
 1. **Welcome** — enter an original botanical greenhouse world; resume a current experiment without losing it.
 2. **Explore the Laboratory** — tap ingredient jars for material research notes and meet Milo, an original SVG mycelium guide.
-3. **Collect, Drop & Mix** — drag a portion into the glass vessel or tap a jar; repeatedly add/remove equal illustrative dry-mass portions. Percentages use largest-remainder allocation and always sum to 100 for a nonempty blend. At least two substrates are required. Draw approximately two full circles in the vessel, or use **Auto Mix**. Rotational travel drives blending; back-and-forth jitter does not count as repeated full turns within one gesture.
-4. **Growth Conditions** — drag thermometer liquid and substrate water level vertically, use sliders or minus/plus controls, and swipe or tap the incubation day wheel. Treatment, moisture, temperature and time are actual simulation inputs.
-5. **Watch Mycelium Grow** — observe four procedural, input-dependent phases. Pause, play or skip. Reduced-motion mode begins paused. Animation progress is sequence progress, not measured colonization.
-6. **Experiment Results** — inspect a deterministic favorable, incomplete, contamination-risk or unverified outcome, input summary and explanations. Open details, pin a result, refine it or explore its lifecycle.
-7. **Material Lifecycle** — rotate conceptual material forms, explore three potential applications and tap six lifecycle stops. Growth, moulding, drying and post-processing are separate. End-of-life possibilities depend on the formulation and disposal conditions.
-8. **Experiment Notebook** — open, duplicate and compare two experiments, including changed inputs, model versions and recorded explanations. New experiments keep existing records. Discarding an unfinished recipe requires confirmation.
+3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. Equal illustrative dry-mass portions update composition to a total of 100%. Add/remove portions in the ingredient tray.
+4. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
+5. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
+6. **Watch Mycelium Grow** — observe four input-dependent procedural phases. Pause, play or skip. Reduced-motion mode begins paused; sequence progress is not measured colonization.
+7. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
+8. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
+9. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
 
 Each portion represents an equal illustrative dry-mass unit, not a measured gram quantity. The mycelium culture is a separate fixed illustrative starter. Species and inoculum dose are not modeled and are not included in waste percentages. There is a 1,000-portion limit per ingredient to bound local state.
 
@@ -49,7 +50,7 @@ Each portion represents an equal illustrative dry-mass unit, not a measured gram
 | Preparation        | Untreated substrate triggers an illustrative contamination-risk flag, not a diagnosis                 |
 | Model coverage     | Two/three-material blends are modeled; four-material blends are unverified                            |
 
-Within model coverage, zero stressors produces favorable growth and one/two produces incomplete growth. Three stressors, an extreme condition or untreated preparation produces a risk state. Known modeled risk flags take precedence over uncertainty. Otherwise an unsupported blend or long duration yields **Unverified Recipe**. These categories explain the model; they do not establish actual biological performance.
+Within model coverage, zero stressors produces favorable growth and one/two produces incomplete growth. Three stressors, an extreme condition or untreated preparation produces a risk state. Known modeled risk flags take precedence over uncertainty. Otherwise an unsupported blend or long duration yields **Unverified Combination**. These categories explain the model; they do not establish actual biological performance.
 
 Substrate moisture means water divided by **wet substrate mass**. It is not ambient relative humidity. Real results also depend on species, inoculum, sterilization, particle size, airflow and other omitted factors.
 
@@ -100,7 +101,7 @@ npm run test:e2e
 
 ## GitHub Pages and review
 
-This redesign is prepared on **`redesign/enchanted-eco-laboratory`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved.
+This redesign is prepared on **`redesign/botanical-storybook`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved.
 
 The repository is **Jiaqi-Hu111/Blue-Green**, with the case-sensitive Vite base **`/Blue-Green/`**. Screen navigation uses React state and browser history on the same document; no nested server routes or SPA redirect workaround are needed.
 
@@ -114,4 +115,4 @@ The deployment installs from the lockfile, runs unit tests, builds Vite, and upl
 
 ## Artwork
 
-`laboratory.png`, `materials.png` and the retained `mycelium.png` are original generated illustrative artworks, not records of physical experiments. Procedural SVG provides the vessel, instruments, guide, input-dependent mycelium networks and samples. No external image URL is required at runtime.
+The current scenes use original `coastal-storybook.png` scenery and an `illustrated-materials.png` atlas, with independent SVG environmental layers and interactive objects. The reference boards are never rendered as screens. Earlier assets are retained for provenance. All imagery is illustrative, not a physical experiment record. See [the art-direction and reference mapping](docs/storybook-design.md) for details. No external image URL is required at runtime.

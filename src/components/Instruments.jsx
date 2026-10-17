@@ -106,13 +106,13 @@ export function Thermometer({ value, onChange }) {
               className="thermometer-liquid"
               style={{
                 height: `${15 + ((value - 10) / 28) * 80}%`,
-                background: value > 28 ? "#dc9b6e" : "#bdd4a5",
+                background: value > 28 ? "#bb6947" : "#c98e59",
               }}
             />
           </div>
           <div
             className="thermometer-bulb"
-            style={{ background: value > 28 ? "#dc9b6e" : "#bdd4a5" }}
+            style={{ background: value > 28 ? "#bb6947" : "#c98e59" }}
           />
         </div>
         <div className="instrument-reading">
@@ -172,7 +172,7 @@ export function MoistureInstrument({ value, onChange }) {
               d="M75 8C58 43 15 88 15 133a60 60 0 00120 0C135 88 92 43 75 8Z"
               fill="#aed5d0"
               fillOpacity=".07"
-              stroke="#aed5d0"
+              stroke="#35413a"
               strokeWidth="1.5"
             />
             <g clipPath={`url(#drop-${id})`}>
@@ -272,6 +272,22 @@ export function IncubationDial({ value, onChange }) {
     onChange(day);
     center(day);
   }
+  const dialHeld = useRef(false);
+  function turnDial(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    let angle =
+      (Math.atan2(
+        e.clientY - r.top - r.height / 2,
+        e.clientX - r.left - r.width / 2,
+      ) *
+        180) /
+        Math.PI +
+      90;
+    if (angle > 180) angle -= 360;
+    onChange(
+      Math.round(3 + ((Math.max(-135, Math.min(135, angle)) + 135) / 270) * 32),
+    );
+  }
   return (
     <section className="instrument incubation-instrument">
       <div className="instrument-number">03 / TIME</div>
@@ -286,6 +302,126 @@ export function IncubationDial({ value, onChange }) {
       <p className="instrument-copy">
         A simulated window for the network to unfold.
       </p>
+      <div
+        className="calendar-dial interactive-instrument"
+        role="slider"
+        aria-label="Rotate incubation dial"
+        aria-valuemin={3}
+        aria-valuemax={35}
+        aria-valuenow={value}
+        aria-valuetext={`${value} days`}
+        tabIndex={0}
+        onPointerDown={(e) => {
+          dialHeld.current = true;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          turnDial(e);
+        }}
+        onPointerMove={(e) => {
+          if (dialHeld.current) turnDial(e);
+        }}
+        onPointerUp={() => (dialHeld.current = false)}
+        onPointerCancel={() => (dialHeld.current = false)}
+        onKeyDown={(e) => {
+          if (
+            [
+              "ArrowLeft",
+              "ArrowDown",
+              "ArrowRight",
+              "ArrowUp",
+              "Home",
+              "End",
+            ].includes(e.key)
+          ) {
+            e.preventDefault();
+            pick(
+              e.key === "Home"
+                ? 3
+                : e.key === "End"
+                  ? 35
+                  : Math.max(
+                      3,
+                      Math.min(
+                        35,
+                        value +
+                          (["ArrowLeft", "ArrowDown"].includes(e.key) ? -1 : 1),
+                      ),
+                    ),
+            );
+          }
+        }}
+      >
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle
+            cx="110"
+            cy="110"
+            r="103"
+            fill="#ba966e"
+            stroke="#35413a"
+            strokeWidth="2"
+          />
+          <circle
+            cx="110"
+            cy="110"
+            r="94"
+            fill="#f3ebd9"
+            stroke="#705f45"
+            strokeWidth="1.4"
+          />
+          {Array.from({ length: 33 }, (_, i) => {
+            const a = ((-135 + (i / 32) * 270 - 90) * Math.PI) / 180;
+            return (
+              <line
+                key={i}
+                x1={110 + 84 * Math.cos(a)}
+                y1={110 + 84 * Math.sin(a)}
+                x2={110 + (i % 4 === 0 ? 77 : 81) * Math.cos(a)}
+                y2={110 + (i % 4 === 0 ? 77 : 81) * Math.sin(a)}
+                stroke="#35413a"
+                strokeWidth="1"
+              />
+            );
+          })}
+          {[3, 10, 18, 26, 35].map((n) => {
+            const a = ((-135 + ((n - 3) / 32) * 270 - 90) * Math.PI) / 180;
+            return (
+              <text
+                key={n}
+                x={110 + 65 * Math.cos(a)}
+                y={115 + 65 * Math.sin(a)}
+                textAnchor="middle"
+                fill="#35413a"
+                fontSize="16"
+                fontFamily="Georgia,serif"
+              >
+                {n}
+              </text>
+            );
+          })}
+          <g transform={`rotate(${-135 + ((value - 3) / 32) * 270} 110 110)`}>
+            <path
+              d="M110 45l-7 18 5 0 0 48h4V63h5Z"
+              fill="#a87945"
+              stroke="#35413a"
+              strokeWidth="1.4"
+            />
+            <path d="M110 113v21" stroke="#35413a" strokeWidth="2" />
+          </g>
+          <circle
+            cx="110"
+            cy="110"
+            r="7"
+            fill="#a87945"
+            stroke="#35413a"
+            strokeWidth="2"
+          />
+          <path
+            d="M61 164q23-2 34 14m65-14q-24-2-35 14"
+            fill="none"
+            stroke="#75896a"
+            strokeWidth="1.5"
+          />
+        </svg>
+      </div>
       <div className="day-wheel-wrapper">
         <div
           className="day-wheel"
