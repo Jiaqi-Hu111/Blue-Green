@@ -104,7 +104,7 @@ export const CONTEXT_HELP = [
   },
   {
     title: "Collect, drop & mix",
-    text: "Drag a jar portion into the vessel, or tap the jar to add. Add or remove portions in the tray. Choose at least two materials, then select Mix Ingredients. Draw circles inside the vessel to stir, or use Auto Mix.",
+    text: "Drag an ingredient into the vessel, or tap its jar. Use Edit Recipe to adjust exact percentages or remove materials. Choose at least two positive shares, then select Mix Ingredients. Draw circles inside the vessel to stir, or use Auto Mix.",
   },
   {
     title: "Set growing conditions",
@@ -124,6 +124,6 @@ export const CONTEXT_HELP = [
   },
   {
     title: "Your field notebook",
-    text: "Open any experiment, duplicate its recipe, or select two records and compare their inputs and explanations side by side. Records and progress stay on this browser only.",
+    text: "Open any experiment, duplicate its recipe, or select two records and compare their inputs and explanations side by side. Device records stay on this browser; tab-only records and active progress stay in this tab’s session.",
   },
 ];

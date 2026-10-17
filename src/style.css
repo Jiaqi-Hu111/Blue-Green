@@ -3580,3 +3580,209 @@ input {
     min-height: 0;
   }
 }
+.recipe-drawer {
+  max-width: 660px;
+}
+.recipe-drawer > .composition-strip {
+  margin-top: 20px;
+}
+.recipe-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid #71816866;
+}
+.recipe-total strong {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+}
+.recipe-drawer-row {
+  display: grid;
+  grid-template-columns: 38px 1fr 75px;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid #71816855;
+}
+.recipe-drawer-row > label {
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+.recipe-drawer-row > input[type="range"] {
+  grid-column: 1 / span 2;
+  width: 100%;
+  height: 28px;
+  accent-color: #548e87;
+}
+.recipe-drawer-row > .text-link {
+  font-size: 12px;
+}
+.recipe-number {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.recipe-number input {
+  min-width: 0;
+  width: 58px;
+  padding: 9px 3px;
+  background: #f9f1df;
+  border: 1px solid #68775b;
+  border-radius: 3px;
+  font-size: 16px;
+}
+.recipe-drawer > .fine-print {
+  margin-top: 17px;
+}
+.reference-recipe {
+  max-width: 640px;
+  margin: 20px auto;
+  padding: 0 24px;
+  text-align: center;
+}
+.reference-recipe .text-link {
+  margin: auto;
+  text-decoration: underline;
+}
+.reference-recipe > .fine-print {
+  font-size: 10px;
+}
+.ingredient-tray > .button {
+  width: 100%;
+  margin-top: 16px;
+}
+.notebook-privacy {
+  max-width: 740px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+}
+.notebook-privacy label {
+  font-family: Georgia, serif;
+  font-size: 18px;
+}
+.notebook-privacy select {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #63765b;
+  background: #f3ebd9;
+  color: #35413a;
+  border-radius: 5px;
+  font:
+    13px Arial,
+    sans-serif;
+}
+.deployment-update {
+  position: fixed;
+  z-index: 55;
+  left: 18px;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  max-width: 440px;
+  margin: auto;
+  background: #f3ebd9;
+  border: 1.5px solid #35413a;
+  border-radius: 7px 12px 5px 9px;
+  padding: 13px 16px;
+  box-shadow: 2px 4px 0 #a77c6266;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 14px;
+}
+.deployment-update > span {
+  font-family: Georgia, serif;
+  font-size: 18px;
+}
+.deployment-update > button {
+  min-width: 70px;
+  min-height: 44px;
+  background: #1f6466;
+  color: #f3ebd9;
+  border: 1px solid #35413a;
+  border-radius: 5px;
+  font-size: 14px;
+}
+.deployment-update > p {
+  grid-column: 1 / span 2;
+  font-size: 10px;
+}
+.generative-growth {
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+}
+.generative-growth > svg:first-child {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.network-canvas,
+.network-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.growth-vessel-reflection {
+  z-index: 2;
+  pointer-events: none;
+}
+.canvas-fallback-note {
+  display: block;
+  font-size: 9px;
+  text-align: center;
+  padding: 7px;
+}
+.generative-label {
+  text-align: center;
+  font-size: 10px;
+  margin: 14px auto 0;
+  color: #53664d;
+}
+.growth-playback {
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.growth-education {
+  max-width: 680px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+}
+.growth-education summary {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 0;
+}
+.growth-education p {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.growth-education a {
+  display: inline-block;
+  font-size: 11px;
+  padding: 12px 0;
+}
+.deployment-update {
+  grid-template-columns: 1fr auto auto;
+}
+.deployment-update > .update-later {
+  min-width: 48px;
+  background: none;
+  color: #35413a;
+  border-color: transparent;
+}
+.deployment-update > p {
+  grid-column: 1 / span 3;
+}
+.deployment-update > span {
+  font-size: 16px;
+}

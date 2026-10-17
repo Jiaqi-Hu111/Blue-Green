@@ -12,6 +12,8 @@ import {
   Info,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { positiveIngredientCount } from "./state";
+import { RecipeDrawer } from "./components/RecipeDrawer";
 import { MATERIALS, evaluate } from "./simulation";
 import {
   LaboratoryScene,
@@ -26,6 +28,7 @@ import {
   IncubationDial,
   PreparationControl,
 } from "./components/Instruments";
+import { GenerativeGrowth } from "./components/GenerativeGrowth";
 import { GrowthVisualization } from "./components/Growth";
 import { ExperimentSummary } from "./components/Notebook";
 import {
@@ -164,15 +167,20 @@ export function MixingScreen({
   autoMixing,
   onContinue,
   onNotice,
+  onRecipeChange,
+  onRemove,
+  onReference,
 }) {
   const ref = useRef(null),
     [ghost, setGhost] = useState(null),
-    [dropKey, setDropKey] = useState(0);
+    [dropKey, setDropKey] = useState(0),
+    [drawer, setDrawer] = useState(false);
   function add(id) {
     onPortion(id, 1);
     setDropKey((k) => k + 1);
+    setDrawer(true);
   }
-  const count = Object.keys(draft.portions).length;
+  const count = positiveIngredientCount(recipe);
   return (
     <section
       className={`mix-screen ${draft.mixing ? "stirring-screen" : "collecting-screen"}`}
@@ -227,10 +235,7 @@ export function MixingScreen({
             onStir={onStir}
             over={ghost?.over}
             dropKey={dropKey}
-            portionCount={Object.values(draft.portions).reduce(
-              (sum, n) => sum + n,
-              0,
-            )}
+            portionCount={count * 2}
             autoMixing={autoMixing}
           />
           {draft.mixing && (
@@ -263,7 +268,28 @@ export function MixingScreen({
         <IngredientTray
           portions={draft.portions}
           recipe={recipe}
-          onChange={onPortion}
+          onEdit={() => setDrawer(true)}
+        />
+      )}
+      {!draft.mixing && (
+        <div className="reference-recipe">
+          <button className="text-link" onClick={onReference}>
+            Optional Reference Recipe
+          </button>
+          <p className="fine-print">
+            60% sawdust + 40% straw, 62% moisture, 24°C, 18 days, treated.
+            Favourable in this educational model; real biological success is not
+            guaranteed.
+          </p>
+        </div>
+      )}
+      {drawer && (
+        <RecipeDrawer
+          draft={draft}
+          recipe={recipe}
+          onChange={onRecipeChange}
+          onRemove={onRemove}
+          onClose={() => setDrawer(false)}
         />
       )}
       {!draft.mixing && draft.mixProgress < 1 && (
@@ -346,7 +372,9 @@ export function ConditionsScreen({
       </div>
       <ActionDock note="Illustrative growing ranges, not a cultivation protocol.">
         <Button
-          disabled={Object.keys(recipe).length < 2 || draft.mixProgress < 1}
+          disabled={
+            positiveIngredientCount(recipe) < 2 || draft.mixProgress < 1
+          }
           onClick={onStart}
         >
           Start Cultivation
@@ -385,6 +413,7 @@ export function GrowthScreen({
   onPlay,
   onSkip,
   onResults,
+  onRestart,
 }) {
   const verdict = evaluate({ ...draft, recipe }),
     progress = draft.growthProgress,
@@ -407,12 +436,29 @@ export function GrowthScreen({
           <span className="glow-dot" /> CULTIVATION CHAMBER / OBSERVATION
         </div>
         <div className="growth-vessel">
-          <GrowthVisualization progress={progress} outcome={verdict.outcome} />
+          <GenerativeGrowth
+            recipe={recipe}
+            progress={progress}
+            outcome={verdict.outcome}
+            seedKey={JSON.stringify({
+              recipe,
+              moisture: draft.moisture,
+              temperature: draft.temperature,
+              days: draft.days,
+              treated: draft.treated,
+            })}
+          />
           <span className="growth-vessel-reflection" />
         </div>
+        <p className="generative-label">
+          Mycelium-inspired generative visualisation
+        </p>
         <div className="chamber-progress">
           <span>SEQUENCE {Math.round(progress)}%</span>
-          <span>{draft.days} ILLUSTRATIVE DAYS</span>
+          <span>
+            {Math.round((draft.days * progress) / 100)} / {draft.days}{" "}
+            ILLUSTRATIVE DAYS
+          </span>
         </div>
         <div className="growth-phase-dots" aria-label="Cultivation phases">
           {GROWTH_PHASES.map((p, i) => (
@@ -443,8 +489,28 @@ export function GrowthScreen({
             Skip Animation
             <SkipForward size={16} />
           </button>
+          <button className="text-link" onClick={onRestart}>
+            Restart Animation
+          </button>
         </div>
       </LaboratoryScene>
+      <details className="growth-education">
+        <summary>About this visualisation</summary>
+        <p>
+          Inspired by agent-based organic network models: moving agents sense
+          nearby trails, turn, deposit traces and gradually diffuse or fade
+          them. Physarum is a slime mold, not fungal mycelium. This artwork does
+          not predict fungal branching, colonization, growth rates or material
+          performance.
+        </p>
+        <a
+          href="https://www.pavelp.cz/posts/eng-cpp-slime-mold-simulation/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Read the visualisation reference
+        </a>
+      </details>
       <p className="assumption-note">
         Accelerated illustrative timeline. Sequence progress is not a measured
         colonization percentage.

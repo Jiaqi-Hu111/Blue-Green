@@ -27,15 +27,17 @@ Open `http://localhost:4173/Blue-Green/`. The primary mobile viewport is **390 �
 
 1. **Welcome** — enter an original botanical greenhouse world; resume a current experiment without losing it.
 2. **Explore the Laboratory** — tap ingredient jars for material research notes and meet Milo, an original SVG mycelium guide.
-3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. Equal illustrative dry-mass portions update composition to a total of 100%. Add/remove portions in the ingredient tray.
+3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. An illustrated Recipe Drawer provides sliders and exact percentages. Nonempty blends always total 100%; zero-share selections remain editable.
 4. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
 5. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
-6. **Watch Mycelium Grow** — observe four input-dependent procedural phases. Pause, play or skip. Reduced-motion mode begins paused; sequence progress is not measured colonization.
+6. **Watch Mycelium Grow** — observe four input-dependent, agent-based Canvas growth phases. Pause, play or skip. Reduced-motion mode begins paused; sequence progress is not measured colonization.
 7. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
 8. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
 9. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
 
-Each portion represents an equal illustrative dry-mass unit, not a measured gram quantity. The mycelium culture is a separate fixed illustrative starter. Species and inoculum dose are not modeled and are not included in waste percentages. There is a 1,000-portion limit per ingredient to bound local state.
+The retained internal `portions` field is a compatibility representation of relative dry-substrate weights. New recipe edits use percentages, not repeated +1 taps or measured gram quantities. The mycelium culture is separate from waste percentages. **Optional Reference Recipe** supplies 60% sawdust / 40% straw at 62% substrate moisture, 24°C, 18 days and treated preparation, explicitly labelled as educational assumptions without a biological guarantee.
+
+The active tab and completed notebook now have separate storage. See [the implementation and caching investigation](docs/updates-and-experiments.md) for the measured live headers, new storage keys, privacy choices, update behaviour and verification.
 
 ## Scientific scope and transparent rules
 
@@ -63,9 +65,11 @@ These publications provide material and fabrication context; the game’s rules 
 
 ## Local progress and previous experiments
 
-Progress, blending, growing conditions, sequence progress and the latest **24** records are stored under `bluegreen-lab-v2`. A cultivation sequence resumes paused after reload. Revisiting its result does not create duplicate records. **Save Experiment** pins an existing record visually; all completed runs are already recorded automatically, and the 24-record limit still applies.
+New visitor tabs start with an empty vessel. Same-tab reloads restore active progress from sessionStorage; legacy unfinished local recipes require explicit resume. Completed device records are merged into `bluegreen-history-v3`, while the original v1/v2 keys remain untouched. There is no automatic 24-record pruning or reevaluation of older outcomes.
 
-The application migrates `bluegreen-lab-v1` recipes and history without overwriting the old key. Recorded v1 outcomes and explanations stay as recorded and are marked as an earlier model. Incubation period and preparation were absent from v1; they display **Not recorded**, rather than invented historical values. Duplicating such a record uses current default settings (18 days and treated substrate) and asks the visitor to review them. Corrupted storage falls back safely. If local storage is blocked, the game continues in memory with a visible notice. Data is specific to the current browser/origin; it does not sync across devices.
+The notebook lets visitors choose device persistence or tab-only storage for **new** records. Both choices preserve existing device history. No visitor data is sent to a server. Explicit new-experiment actions clear only active state; back/review navigation keeps the recipe. Storage failures are reported and corrupt notebook bytes are preserved instead of overwritten.
+
+Older records retain their recorded outcomes/explanations and model version. Missing historical incubation/preparation values remain **Not recorded**. Duplicating them uses clearly announced current defaults for review.
 
 ## Reusable components
 
@@ -101,7 +105,7 @@ npm run test:e2e
 
 ## GitHub Pages and review
 
-This redesign is prepared on **`redesign/botanical-storybook`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved.
+This redesign is prepared on **`fix/experiment-growth-updates`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved. Each build emits a commit-SHA `version.json`; visitors get a safe, optional Update prompt for later deployments. Runtime images now have content-based filenames. GitHub Pages HTTP headers remain controlled by GitHub, not by this app.
 
 The repository is **Jiaqi-Hu111/Blue-Green**, with the case-sensitive Vite base **`/Blue-Green/`**. Screen navigation uses React state and browser history on the same document; no nested server routes or SPA redirect workaround are needed.
 
@@ -116,3 +120,5 @@ The deployment installs from the lockfile, runs unit tests, builds Vite, and upl
 ## Artwork
 
 The current scenes use original `coastal-storybook.png` scenery and an `illustrated-materials.png` atlas, with independent SVG environmental layers and interactive objects. The reference boards are never rendered as screens. Earlier assets are retained for provenance. All imagery is illustrative, not a physical experiment record. See [the art-direction and reference mapping](docs/storybook-design.md) for details. No external image URL is required at runtime.
+
+The observation canvas is a **Mycelium-inspired generative visualisation**, adapted from agent/trail concepts in a Physarum slime mold model. Physarum is not fungal mycelium. See [attribution and licensing](THIRD_PARTY_NOTICES.md). The animation never determines the educational outcome.

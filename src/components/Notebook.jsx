@@ -184,8 +184,9 @@ export function ExperimentNotebook({
         </>
       )}
       <p className="notebook-footnote">
-        Stored on this browser only. The latest 24 experiments are retained;
-        “Save Experiment” pins a record visually, without changing this limit.
+        Stored on this browser only. Completed experiments are retained without
+        automatic pruning; “Save Experiment” pins a record visually, without
+        duplicating the record.
       </p>
     </div>
   );

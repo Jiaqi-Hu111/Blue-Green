@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowLeft, X, Leaf, Info, Check } from "lucide-react";
 import { CONTEXT_HELP, SOURCES, REFERENCE_NOTES } from "../data/research";
-export const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
+export const asset = (path) =>
+  (typeof __IMAGE_ASSETS__ !== "undefined" && __IMAGE_ASSETS__[path]) ||
+  `${import.meta.env.BASE_URL}${path}`;
 export function Button({
   children,
   onClick,
@@ -219,9 +221,9 @@ export function HelpContent({ step }) {
         </a>
       ))}
       <p className="fine-print">
-        Progress and the latest 24 experiments stay on this device. Artwork is
-        original illustrative imagery, not a photograph of an observed
-        experiment.
+        Progress stays in this tab. Device-mode notebook records remain on this
+        device without automatic pruning. Artwork is original illustrative
+        imagery, not a photograph of an observed experiment.
       </p>
     </>
   );
