@@ -2,108 +2,202 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   loadState,
+  persistState,
   freshDraft,
-  changePortion,
+  referenceDraft,
+  setIngredientPercent,
+  addIngredient,
+  removeIngredient,
   draftFromEntry,
+  positiveIngredientCount,
   STORAGE_KEY,
   LEGACY_KEY,
-  sanitizeDraft,
+  HISTORY_KEY,
+  ACTIVE_KEY,
+  SESSION_HISTORY_KEY,
 } from "./state.js";
-import { percentages } from "./simulation.js";
-const storage = (entries) => ({ getItem: (key) => entries[key] || null });
-test("migrates previous experiments and preserves their recorded outcome", () => {
-  const old = {
-    step: 5,
-    recipe: { sawdust: 65, coffee: 35 },
-    moisture: 62,
-    temperature: 24,
-    history: [
-      {
-        id: 123,
-        recipe: { sawdust: 65, coffee: 35 },
-        moisture: 62,
-        temperature: 24,
-        outcome: "success",
-        reasons: ["Original recorded explanation."],
-      },
-    ],
+import { percentages, evaluate } from "./simulation.js";
+function memory(initial = {}) {
+  const data = new Map(Object.entries(initial));
+  return {
+    getItem: (k) => data.get(k) ?? null,
+    setItem: (k, v) => data.set(k, v),
+    data,
   };
-  const state = loadState(storage({ [LEGACY_KEY]: JSON.stringify(old) }));
-  assert.equal(state.step, 7);
-  assert.deepEqual(percentages(state.draft.portions), old.recipe);
-  assert.equal(state.history[0].id, "123");
-  assert.equal(state.history[0].modelVersion, 1);
-  assert.equal(state.history[0].reasons[0], "Original recorded explanation.");
-  assert.equal(state.nextNumber, 2);
-  assert.equal(state.history[0].days, null);
-  assert.equal(state.history[0].treated, null);
+}
+const record = (id, number = 1) => ({
+  id,
+  number,
+  recipe: { sawdust: 60, straw: 40 },
+  moisture: 62,
+  temperature: 24,
+  days: 18,
+  treated: true,
+  outcome: "success",
+  reasons: ["Original recorded reason."],
+  customField: "preserve-me",
 });
-test("v2 restores unfinished mixing, conditions, growth and records", () => {
-  const raw = {
+test("fresh visitor starts empty while all legacy records and raw data survive", () => {
+  const raw = JSON.stringify({
+    step: 5,
+    draft: { ...referenceDraft(), mixProgress: 1, runId: "done" },
+    history: [record("done")],
+  });
+  const local = memory({ [STORAGE_KEY]: raw }),
+    session = memory();
+  const state = loadState(local, session);
+  assert.deepEqual(state.draft.portions, {});
+  assert.equal(state.step, 0);
+  assert.equal(state.history.length, 1);
+  persistState(state, local, session);
+  assert.equal(local.getItem(STORAGE_KEY), raw);
+  assert.equal(
+    JSON.parse(local.getItem(HISTORY_KEY))[0].customField,
+    "preserve-me",
+  );
+});
+test("unfinished legacy draft is offered for explicit resume, never auto-loaded", () => {
+  const state = loadState(
+    memory({
+      [STORAGE_KEY]: JSON.stringify({ draft: referenceDraft(), history: [] }),
+    }),
+    memory(),
+  );
+  assert.deepEqual(state.draft.portions, {});
+  assert.deepEqual(state.resumeDraft.portions, { sawdust: 60, straw: 40 });
+});
+test("same-tab refresh restores recipe, conditions and paused sequence; a new tab is empty", () => {
+  const local = memory(),
+    session = memory();
+  let state = loadState(local, session);
+  state = {
+    ...state,
     step: 4,
     draft: {
-      portions: { sawdust: 2, straw: 1 },
-      mixing: true,
+      ...referenceDraft(),
       mixProgress: 1,
-      growthProgress: 47,
-      runId: "test-run",
-      days: 22,
-      treated: false,
-      moisture: 60,
-      temperature: 23,
+      growthProgress: 45,
+      runId: "active",
     },
-    history: [
-      {
-        id: "past",
-        number: 9,
-        recipe: { sawdust: 50, straw: 50 },
-        outcome: "incomplete",
-      },
-    ],
-    resultId: "past",
   };
-  const result = loadState(storage({ [STORAGE_KEY]: JSON.stringify(raw) }));
-  assert.equal(result.draft.growthProgress, 47);
-  assert.equal(result.draft.days, 22);
-  assert.equal(result.draft.treated, false);
-  assert.equal(result.resultId, "past");
-  assert.equal(result.nextNumber, 10);
+  persistState(state, local, session);
+  const restored = loadState(local, session);
+  assert.equal(restored.step, 4);
+  assert.equal(restored.draft.growthProgress, 45);
+  assert.equal(restored.draft.temperature, 24);
+  assert.deepEqual(loadState(local, memory()).draft.portions, {});
 });
-test("invalid, blocked and corrupted storage fall back safely", () => {
-  for (const input of ["bad-json", "null", "42"])
-    assert.deepEqual(loadState(storage({ [STORAGE_KEY]: input })).history, []);
+test("starting a new recipe and exceeding 24 records never prunes completed history", () => {
+  const history = Array.from({ length: 35 }, (_, i) =>
+      record(`run-${i}`, i + 1),
+    ),
+    local = memory({ [HISTORY_KEY]: JSON.stringify(history) }),
+    session = memory();
+  let state = loadState(local, session);
+  state = { ...state, draft: freshDraft(), step: 2, resultId: null };
+  persistState(state, local, session);
+  assert.equal(loadState(local, session).history.length, 35);
+  assert.deepEqual(
+    JSON.parse(local.getItem(HISTORY_KEY)).find((r) => r.id === "run-0")
+      .reasons,
+    ["Original recorded reason."],
+  );
+});
+test("privacy mode keeps prior device records and session-only new entries in their own store", () => {
+  const local = memory({ [HISTORY_KEY]: JSON.stringify([record("past")]) }),
+    session = memory();
+  const state = {
+    ...loadState(local, session),
+    privacy: "session",
+    history: [
+      { ...record("private", 2), storageMode: "session" },
+      record("past"),
+    ],
+  };
+  persistState(state, local, session);
+  assert.equal(JSON.parse(local.getItem(HISTORY_KEY)).length, 1);
+  assert.equal(JSON.parse(session.getItem(SESSION_HISTORY_KEY)).length, 1);
+  assert.equal(loadState(local, session).history.length, 2);
+  assert.equal(loadState(local, memory()).history.length, 1);
+});
+test("merges another tab’s records instead of overwriting them", () => {
+  const local = memory(),
+    session = memory();
+  const first = loadState(local, session);
+  persistState({ ...first, history: [record("other", 2)] }, local, memory());
+  persistState({ ...first, history: [record("this", 1)] }, local, session);
+  assert.equal(loadState(local, session).history.length, 2);
+});
+test("percentage edits normalize, keep zeros editable and invalidate completed mixing", () => {
+  let d = { ...referenceDraft(), mixProgress: 1, runId: "old" };
+  for (let n = 0; n <= 100; n++) {
+    d = setIngredientPercent(d, "sawdust", n);
+    assert.equal(
+      Object.values(percentages(d.portions)).reduce((s, v) => s + v),
+      100,
+    );
+  }
+  d = setIngredientPercent(d, "sawdust", 0);
+  assert.equal(d.portions.sawdust, 0);
+  assert.equal(positiveIngredientCount(percentages(d.portions)), 1);
+  assert.equal(d.mixProgress, 0);
+  assert.equal(d.runId, null);
+  d = removeIngredient(d, "sawdust");
+  assert.deepEqual(d.portions, { straw: 100 });
+});
+test("adding, removing and roundoff preserve a valid recipe", () => {
+  let d = freshDraft();
+  for (const id of ["sawdust", "coffee", "straw", "paper"]) {
+    d = addIngredient(d, id);
+    assert.equal(
+      Object.values(percentages(d.portions)).reduce((s, v) => s + v),
+      100,
+    );
+  }
+  for (let n = 0; n < 100; n++) {
+    d = setIngredientPercent(
+      d,
+      ["sawdust", "coffee", "straw", "paper"][n % 4],
+      n,
+    );
+    assert.equal(
+      Object.values(d.portions).reduce((s, v) => s + v),
+      100,
+    );
+    assert.ok(Object.values(d.portions).every((n) => n >= 0));
+  }
+  assert.deepEqual(
+    removeIngredient(addIngredient(freshDraft(), "straw"), "straw").portions,
+    {},
+  );
+});
+test("reference recipe flows through actual state and produces Favourable Growth", () => {
+  const d = referenceDraft();
+  const r = evaluate({ ...d, recipe: percentages(d.portions) });
+  assert.equal(r.outcome, "success");
+  assert.equal(r.label, "Favourable Growth");
+  assert.ok(r.reasons.some((r) => r.includes("60%")));
+  assert.ok(r.reasons.some((r) => r.includes("62%")));
+  assert.ok(r.reasons.some((r) => r.includes("24°C")));
+});
+test("duplication preserves conditions but creates a separate active run", () => {
+  const d = draftFromEntry(record("old"));
+  assert.deepEqual(d.portions, { sawdust: 60, straw: 40 });
+  assert.equal(d.mixProgress, 1);
+  assert.equal(d.runId, null);
+});
+test("corrupt history is not overwritten and unavailable storage has a safe blank loader", () => {
+  const local = memory({ [HISTORY_KEY]: "broken" });
+  assert.throws(() =>
+    persistState(loadState(local, memory()), local, memory()),
+  );
+  assert.equal(local.getItem(HISTORY_KEY), "broken");
   assert.equal(
     loadState({
       getItem() {
-        throw Error("denied");
+        throw Error();
       },
-    }).step,
+    }).history.length,
     0,
   );
-  assert.equal(sanitizeDraft(null).moisture, 62);
-});
-test("portion changes invalidate blending while preserving conditions", () => {
-  let d = { ...freshDraft(), moisture: 67, days: 20, mixProgress: 1 };
-  d = changePortion(d, "sawdust", 1);
-  d = changePortion(d, "straw", 1);
-  assert.equal(d.mixProgress, 0);
-  assert.equal(d.moisture, 67);
-  assert.equal(d.days, 20);
-  d = changePortion(d, "straw", -1);
-  assert.deepEqual(d.portions, { sawdust: 1 });
-});
-test("duplication preserves proportions and conditions but begins a separate run", () => {
-  const d = draftFromEntry({
-    recipe: { sawdust: 67, straw: 33 },
-    days: 14,
-    moisture: 66,
-    temperature: 26,
-    treated: false,
-    id: "old",
-  });
-  assert.deepEqual(percentages(d.portions), { sawdust: 67, straw: 33 });
-  assert.equal(d.mixProgress, 1);
-  assert.equal(d.runId, null);
-  assert.equal(d.days, 14);
-  assert.equal(d.treated, false);
 });

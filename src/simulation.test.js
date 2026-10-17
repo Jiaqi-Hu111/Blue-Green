@@ -92,3 +92,13 @@ test("legacy rebalance keeps integer totals", () => {
     assert.ok(Object.values(r).every((x) => x >= 0));
   }
 });
+
+test("normalized positive recipe shares determine coverage, not stale raw portion selections", () => {
+  const result = evaluate({
+    ...base,
+    recipe: { sawdust: 60, straw: 40, coffee: 0, paper: 0 },
+    portions: { sawdust: 60, straw: 40, coffee: 100, paper: 100 },
+  });
+  assert.equal(result.outcome, "success");
+  assert.equal(result.label, "Favourable Growth");
+});

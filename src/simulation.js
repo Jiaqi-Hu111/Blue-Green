@@ -20,7 +20,6 @@ export const RULES = Object.freeze({
   coffeeLimit: 40,
   paperLimit: 50,
   supportedIngredientCount: [2, 3],
-  maxHistory: 24,
   maxPortionsPerMaterial: 1000,
 });
 export const MATERIALS = [
@@ -31,7 +30,7 @@ export const MATERIALS = [
     description:
       "A lignocellulosic scaffold. Wood particles create a framework for the growing network.",
     detail:
-      "Particle size and wood type affect a real substrate. Here, each portion is an equal illustrative dry-mass unit.",
+      "Particle size and wood type affect a real substrate. Recipe percentages here represent illustrative dry-substrate mass shares.",
     tone: "#b5956f",
     position: "0% 0%",
   },
@@ -97,10 +96,9 @@ export const OUTCOMES = {
 };
 /** Largest-remainder allocation guarantees integer percentages totaling 100. */
 export function percentages(portions) {
-  const entries = MATERIALS.map((m) => [
-    m.id,
-    Math.max(0, Number(portions[m.id]) || 0),
-  ]).filter(([, n]) => n > 0);
+  const entries = MATERIALS.filter((m) => Object.hasOwn(portions, m.id)).map(
+    (m) => [m.id, Math.max(0, Number(portions[m.id]) || 0)],
+  );
   const total = entries.reduce((sum, [, n]) => sum + n, 0);
   if (!total) return {};
   const shares = entries.map(([id, n]) => ({
@@ -118,21 +116,26 @@ export function percentages(portions) {
 /** Kept for existing recipe consumers. */
 export function rebalance(recipe, id, value) {
   const rest = Object.keys(recipe).filter((k) => k !== id);
-  if (!rest.length) return recipe;
+  if (!rest.length) return { [id]: 100 };
   const next = {
     ...recipe,
     [id]: Math.max(0, Math.min(100, Math.round(value))),
   };
   const remaining = 100 - next[id],
-    old = rest.reduce((s, k) => s + recipe[k], 0);
-  let allocated = 0;
-  rest.forEach((key, i) => {
-    next[key] =
-      i === rest.length - 1
-        ? remaining - allocated
-        : Math.round(remaining * (old ? recipe[key] / old : 1 / rest.length));
-    allocated += next[key];
+    total = rest.reduce((sum, k) => sum + (recipe[k] || 0), 0);
+  const shares = rest.map((k) => ({
+    key: k,
+    raw: remaining * (total ? (recipe[k] || 0) / total : 1 / rest.length),
+  }));
+  let left = remaining;
+  shares.forEach((s) => {
+    next[s.key] = Math.floor(s.raw);
+    left -= next[s.key];
   });
+  shares
+    .sort((a, b) => b.raw - Math.floor(b.raw) - (a.raw - Math.floor(a.raw)))
+    .slice(0, left)
+    .forEach((s) => next[s.key]++);
   return next;
 }
 export function evaluate({
@@ -143,7 +146,12 @@ export function evaluate({
   days = 18,
   treated = true,
 }) {
-  const reasons = [];
+  const blend = MATERIALS.filter((m) => (recipe[m.id] || 0) > 0)
+    .map((m) => `${m.name} ${recipe[m.id]}%`)
+    .join(", ");
+  const reasons = [
+    `Your selected dry substrate blend is ${blend}. These recipe limits are model assumptions, not experimental validation.`,
+  ];
   let stress = 0;
   const outside = (value, range) => value < range[0] || value > range[1];
   const extreme =
@@ -152,37 +160,41 @@ export function evaluate({
   if (moisture < RULES.moistureIdeal[0]) {
     stress++;
     reasons.push(
-      "Low substrate moisture limits the water available in the model.",
+      `${moisture}% substrate moisture is below the model’s illustrative ${RULES.moistureIdeal[0]}% lower range; water availability is a modeled limitation.`,
     );
   } else if (moisture > RULES.moistureIdeal[1]) {
     stress++;
     reasons.push(
-      "High substrate moisture reduces modeled air space and raises an illustrative risk.",
+      `${moisture}% substrate moisture exceeds the model’s illustrative ${RULES.moistureIdeal[1]}% range; reduced air space adds a modeled stressor.`,
     );
   } else
     reasons.push(
-      "Substrate moisture falls within the model’s illustrative 55–70% range. This is water / wet substrate mass, not ambient humidity.",
+      `${moisture}% substrate moisture falls within the model’s illustrative 55–70% range. This is water / wet substrate mass, not ambient humidity.`,
     );
   if (temperature < RULES.temperatureIdeal[0]) {
     stress++;
-    reasons.push("Cool incubation slows the modeled network.");
+    reasons.push(
+      `${temperature}°C is below the model’s illustrative 20°C range and adds a cool-incubation stressor.`,
+    );
   } else if (temperature > RULES.temperatureIdeal[1]) {
     stress++;
-    reasons.push("Warm incubation adds a modeled stressor.");
+    reasons.push(
+      `${temperature}°C exceeds the model’s illustrative 28°C range and adds a warm-incubation stressor.`,
+    );
   } else
     reasons.push(
-      "Temperature falls within the illustrative 20–28°C range, not a universal optimum.",
+      `${temperature}°C falls within the illustrative 20–28°C range, not a universal optimum.`,
     );
   if ((recipe.coffee || 0) > RULES.coffeeLimit) {
     stress++;
     reasons.push(
-      "More than 40% coffee adds a density stressor in this educational model.",
+      `${recipe.coffee}% Coffee Grounds exceeds the model’s illustrative 40% limit and adds a density stressor.`,
     );
   }
   if ((recipe.paper || 0) > RULES.paperLimit) {
     stress++;
     reasons.push(
-      "More than 50% paper adds a compaction stressor in this educational model.",
+      `${recipe.paper}% Paper Fibres exceeds the model’s illustrative 50% limit and adds a compaction stressor.`,
     );
   }
   if (days < RULES.daysIllustrative[0]) {
@@ -203,7 +215,23 @@ export function evaluate({
       ? "Treated substrate represents a preparation step; it does not guarantee sterility or safety."
       : "Untreated substrate triggers an illustrative contamination-risk flag. This is not a biological diagnosis.",
   );
-  const count = Object.values(portions || recipe).filter((n) => n > 0).length;
+  if (outside(temperature, RULES.temperatureExtreme))
+    reasons.push(
+      `${temperature}°C is outside the model’s illustrative extreme guard range of 15–33°C, so the risk category takes precedence.`,
+    );
+  if (outside(moisture, RULES.moistureExtreme))
+    reasons.push(
+      `${moisture}% substrate moisture is outside the model’s illustrative extreme guard range of 40–80%, so the risk category takes precedence.`,
+    );
+  if ((recipe.coffee || 0) > 0 && recipe.coffee <= RULES.coffeeLimit)
+    reasons.push(
+      `${recipe.coffee}% Coffee Grounds does not trigger the model’s >40% coffee density flag.`,
+    );
+  if ((recipe.paper || 0) > 0 && recipe.paper <= RULES.paperLimit)
+    reasons.push(
+      `${recipe.paper}% Paper Fibres does not trigger the model’s >50% paper compaction flag.`,
+    );
+  const count = Object.values(recipe).filter((n) => n > 0).length;
   const unsupported =
     count < 2 || count > 3 || days > RULES.daysIllustrative[1];
   if (count > 3)

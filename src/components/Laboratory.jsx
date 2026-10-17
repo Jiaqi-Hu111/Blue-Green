@@ -117,7 +117,7 @@ export function IngredientJar({
           </div>
         </div>
         <span className="jar-caption">
-          {explore ? "DISCOVER" : "+ 1 PORTION"}
+          {explore ? "DISCOVER" : "ADD TO RECIPE"}
         </span>
       </button>
       {!explore && (
@@ -132,54 +132,43 @@ export function IngredientJar({
     </div>
   );
 }
-export function IngredientTray({ portions, recipe, onChange }) {
+export function IngredientTray({ portions, recipe, onEdit }) {
   return (
     <div className="ingredient-tray">
       <div className="tray-heading">
-        <span className="eyebrow">YOUR COLLECTED MATERIALS</span>
+        <span className="eyebrow">YOUR RECIPE</span>
         <span className="total-percent">
           {Object.keys(recipe).length ? "100%" : "EMPTY VESSEL"}
         </span>
       </div>
       {!Object.keys(recipe).length ? (
-        <p className="tray-empty">
-          A new material starts with a small addition.
-        </p>
-      ) : (
-        <div className="tray-portions">
-          {MATERIALS.filter((m) => portions[m.id]).map((m) => (
-            <div className="portion-row" key={m.id}>
-              <MaterialTexture material={m} className="portion-thumbnail" />
-              <div className="portion-name">
-                <strong>{m.name}</strong>
-                <span>
-                  {portions[m.id]}{" "}
-                  {portions[m.id] === 1 ? "portion" : "portions"}
-                </span>
-              </div>
-              <span className="portion-percentage">{recipe[m.id]}%</span>
-              <div className="portion-controls">
-                <button
-                  aria-label={`Remove one portion of ${m.name}`}
-                  onClick={() => onChange(m.id, -1)}
-                >
-                  <Minus size={14} />
-                </button>
-                <button
-                  aria-label={`Add one portion of ${m.name}`}
-                  onClick={() => onChange(m.id, 1)}
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="tray-empty">
+          <p>Your vessel is empty.</p>
+          <p>Drag an ingredient into the vessel to begin.</p>
         </div>
+      ) : (
+        <>
+          <div className="tray-portions">
+            {MATERIALS.filter((m) => Object.hasOwn(portions, m.id)).map((m) => (
+              <div className="portion-row" key={m.id}>
+                <MaterialTexture material={m} className="portion-thumbnail" />
+                <div className="portion-name">
+                  <strong>{m.name}</strong>
+                </div>
+                <span className="portion-percentage">{recipe[m.id] || 0}%</span>
+              </div>
+            ))}
+          </div>
+          <p className="fine-print">
+            {Object.values(recipe).filter((n) => n > 0).length >= 2
+              ? "Ready to Mix"
+              : "Choose at least two ingredients with positive shares."}
+          </p>
+          <Button secondary onClick={onEdit}>
+            Edit Recipe
+          </Button>
+        </>
       )}
-      <p className="fine-print">
-        Equal illustrative dry-mass portions. Percentages update with every
-        addition.
-      </p>
     </div>
   );
 }
@@ -331,7 +320,7 @@ export function MixingVessel({
             className={`blend-surface ${progress >= 1 ? "complete" : ""}`}
             style={{ background: progress >= 1 ? "#9d8763" : undefined }}
           >
-            {MATERIALS.filter((m) => recipe[m.id] != null).map((m) => (
+            {MATERIALS.filter((m) => (recipe[m.id] || 0) > 0).map((m) => (
               <MaterialTexture
                 key={m.id}
                 material={m}
@@ -341,9 +330,13 @@ export function MixingVessel({
             ))}
           </div>
           {Array.from({ length: 28 }, (_, i) => {
-            const m = MATERIALS.filter((m) => recipe[m.id] != null)[
-              i % Object.keys(recipe).length
-            ];
+            let cumulative = 0;
+            const q = ((i + 0.5) / 28) * 100;
+            const m =
+              MATERIALS.find((m) => {
+                cumulative += recipe[m.id] || 0;
+                return cumulative >= q;
+              }) || MATERIALS[0];
             return (
               <i
                 key={i}
@@ -359,7 +352,7 @@ export function MixingVessel({
           })}
         </div>
       )}
-      {dropKey > 0 && (
+      {hasIngredients && dropKey > 0 && (
         <div className="falling-portions" key={dropKey} aria-hidden="true">
           {Array.from({ length: 9 }, (_, i) => (
             <i

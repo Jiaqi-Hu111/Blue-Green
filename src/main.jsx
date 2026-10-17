@@ -13,9 +13,17 @@ import {
   Home,
   Check,
 } from "lucide-react";
-import { MATERIALS, RULES, percentages, evaluate } from "./simulation";
+import { MATERIALS, percentages, evaluate } from "./simulation";
 import {
-  STORAGE_KEY,
+  persistState,
+  HISTORY_KEY,
+  deviceRecords,
+  mergeRecords,
+  sanitizeEntry,
+  positiveIngredientCount,
+  setIngredientPercent,
+  removeIngredient,
+  referenceDraft,
   loadState,
   freshDraft,
   changePortion,
@@ -27,6 +35,7 @@ import {
   Button,
   ScreenHeading,
   ActionDock,
+  asset,
 } from "./components/Common";
 import {
   Welcome,
@@ -42,6 +51,9 @@ import {
   ComparisonPanel,
   ExperimentSummary,
 } from "./components/Notebook";
+import { DeploymentUpdate } from "./components/DeploymentUpdate";
+import { cleanReleaseMarker } from "./deployment";
+cleanReleaseMarker();
 import "./style.css";
 const STAGE_NAMES = [
   "Welcome",
@@ -56,20 +68,29 @@ const STAGE_NAMES = [
 const newRunId = () =>
   globalThis.crypto?.randomUUID?.() ??
   `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+function browserStores() {
+  let local, session;
+  try {
+    local = window.localStorage;
+  } catch {}
+  try {
+    session = window.sessionStorage;
+  } catch {}
+  return { local, session };
+}
 function App() {
   const [state, setState] = useState(() => {
-    try {
-      return loadState(window.localStorage);
-    } catch {
-      return loadState({ getItem: () => null });
-    }
+    const { local, session } = browserStores();
+    return loadState(local, session);
   });
   const { step, draft, history, resultId, nextNumber } = state;
   const [overlay, setOverlay] = useState(null),
     [notice, setNotice] = useState(""),
     [storageError, setStorageError] = useState(false),
     [playing, setPlaying] = useState(false),
-    [autoMixing, setAutoMixing] = useState(false);
+    [autoMixing, setAutoMixing] = useState(false),
+    [pageVisible, setPageVisible] = useState(!document.hidden),
+    [replay, setReplay] = useState(0);
   const reduced = useReducedMotion(),
     screenRef = useRef(null),
     autoRef = useRef(null),
@@ -79,7 +100,8 @@ function App() {
     result = history.find((h) => h.id === resultId);
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const { local, session } = browserStores();
+      persistState(state, local, session);
     } catch {
       setStorageError(true);
     }
@@ -93,20 +115,35 @@ function App() {
     return () => clearTimeout(t);
   }, [step, reduced, stirringView]);
   useEffect(() => {
-    if (step !== 4 || !playing || draft.growthProgress >= 100) return;
-    const t = setInterval(
-      () =>
+    const visible = () => setPageVisible(!document.hidden);
+    document.addEventListener("visibilitychange", visible);
+    return () => document.removeEventListener("visibilitychange", visible);
+  }, []);
+  useEffect(() => {
+    if (step !== 4 || !playing || !pageVisible || draft.growthProgress >= 100)
+      return;
+    let frame = 0,
+      last = 0,
+      carry = 0;
+    const tick = (time) => {
+      if (last) carry += Math.min(100, time - last);
+      last = time;
+      if (carry >= 100) {
+        const delta = carry / 90;
+        carry = 0;
         setState((s) => ({
           ...s,
           draft: {
             ...s.draft,
-            growthProgress: Math.min(100, s.draft.growthProgress + 2),
+            growthProgress: Math.min(100, s.draft.growthProgress + delta),
           },
-        })),
-      120,
-    );
-    return () => clearInterval(t);
-  }, [step, playing, draft.growthProgress >= 100]);
+        }));
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [step, playing, pageVisible, draft.growthProgress >= 100]);
   useEffect(() => {
     if (draft.growthProgress >= 100) setPlaying(false);
   }, [draft.growthProgress]);
@@ -136,6 +173,26 @@ function App() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+  useEffect(() => {
+    const sync = (e) => {
+      if (e.key !== HISTORY_KEY) return;
+      setState((s) => {
+        const records = mergeRecords(
+          deviceRecords(browserStores().local),
+          s.history,
+        )
+          .map(sanitizeEntry)
+          .filter(Boolean);
+        return {
+          ...s,
+          history: records,
+          nextNumber: Math.max(0, ...records.map((h) => h.number)) + 1,
+        };
+      });
+    };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
   function notify(message) {
     setNotice(message);
     clearTimeout(noticeTimer.current);
@@ -154,15 +211,6 @@ function App() {
     setState((s) => ({ ...s, draft: fn(s.draft) }));
   }
   function portion(id, delta) {
-    if (
-      delta > 0 &&
-      (draft.portions[id] || 0) >= RULES.maxPortionsPerMaterial
-    ) {
-      notify(
-        "This jar has reached the 1,000-portion model limit. Remove a portion to change the blend.",
-      );
-      return;
-    }
     clearInterval(autoRef.current);
     setAutoMixing(false);
     modifyDraft((d) => changePortion(d, id, delta));
@@ -205,7 +253,7 @@ function App() {
     );
   }
   function startCultivation() {
-    if (Object.keys(recipe).length < 2 || draft.mixProgress < 1) return;
+    if (positiveIngredientCount(recipe) < 2 || draft.mixProgress < 1) return;
     modifyDraft((d) => ({
       ...d,
       runId: newRunId(),
@@ -235,10 +283,11 @@ function App() {
       treated: draft.treated,
       ...evaluate({ ...draft, recipe }),
       pinned: false,
+      storageMode: state.privacy,
     };
     setState((s) => ({
       ...s,
-      history: [entry, ...s.history].slice(0, RULES.maxHistory),
+      history: [entry, ...s.history],
       resultId: id,
       nextNumber: s.nextNumber + 1,
       draft: { ...s.draft, runId: id },
@@ -247,7 +296,12 @@ function App() {
   }
   function replaceDraft(next, after = 2, message = null) {
     const action = () => {
-      setState((s) => ({ ...s, draft: next, resultId: null }));
+      setState((s) => ({
+        ...s,
+        draft: next,
+        resultId: null,
+        resumeDraft: null,
+      }));
       setOverlay(null);
       move(after);
       if (message) notify(message);
@@ -295,6 +349,12 @@ function App() {
     notify("Experiment saved and pinned in your notebook.");
   }
   function resume() {
+    if (state.resumeDraft) {
+      const next = state.resumeDraft;
+      setState((s) => ({ ...s, draft: next, resumeDraft: null }));
+      move(next.mixProgress >= 1 ? 3 : 2);
+      return;
+    }
     move(
       draft.runId && draft.growthProgress > 0
         ? 4
@@ -305,6 +365,17 @@ function App() {
   }
   return (
     <div className={`app-shell stage-${step}`}>
+      <DeploymentUpdate
+        onBeforeUpdate={() => {
+          try {
+            const { local, session } = browserStores();
+            persistState(state, local, session);
+            return true;
+          } catch {
+            return false;
+          }
+        }}
+      />
       <header className="site-header">
         <div className="header-left">
           {step > 0 && (
@@ -413,7 +484,10 @@ function App() {
               <Welcome
                 onEnter={() => move(1)}
                 onAbout={() => setOverlay({ kind: "help" })}
-                hasProgress={Object.keys(draft.portions).length > 0}
+                hasProgress={
+                  !!state.resumeDraft ||
+                  Object.values(draft.portions).some((n) => n > 0)
+                }
                 onResume={resume}
               />
             )}
@@ -439,6 +513,17 @@ function App() {
                 autoMixing={autoMixing}
                 onContinue={() => move(3)}
                 onNotice={notify}
+                onRecipeChange={(id, v) =>
+                  modifyDraft((d) => setIngredientPercent(d, id, v))
+                }
+                onRemove={(id) => modifyDraft((d) => removeIngredient(d, id))}
+                onReference={() =>
+                  replaceDraft(
+                    referenceDraft(),
+                    2,
+                    "Reference Recipe loaded. These are illustrative model settings, not a guarantee of biological success.",
+                  )
+                }
               />
             )}
             {step === 3 && (
@@ -455,6 +540,7 @@ function App() {
             )}
             {step === 4 && (
               <GrowthScreen
+                key={replay}
                 draft={draft}
                 recipe={recipe}
                 playing={playing}
@@ -464,6 +550,11 @@ function App() {
                   setPlaying(false);
                 }}
                 onResults={finish}
+                onRestart={() => {
+                  modifyDraft((d) => ({ ...d, growthProgress: 0 }));
+                  setReplay((n) => n + 1);
+                  setPlaying(!reduced);
+                }}
               />
             )}
             {step === 5 &&
@@ -500,6 +591,30 @@ function App() {
             )}
             {step === 7 && (
               <section className="notebook-screen">
+                <div className="notebook-privacy">
+                  <label>
+                    Notebook privacy{" "}
+                    <select
+                      aria-label="Notebook privacy"
+                      value={state.privacy}
+                      onChange={(e) =>
+                        setState((s) => ({ ...s, privacy: e.target.value }))
+                      }
+                    >
+                      <option value="device">
+                        Keep new records on this device
+                      </option>
+                      <option value="session">
+                        New records in this tab only
+                      </option>
+                    </select>
+                  </label>
+                  <p className="fine-print">
+                    Existing device records remain intact in either mode.
+                    Session-only records disappear when this browser tab’s
+                    session ends.
+                  </p>
+                </div>
                 <ScreenHeading
                   eyebrow="YOUR EXPERIMENT NOTEBOOK"
                   title={
@@ -582,7 +697,7 @@ function App() {
               <div
                 className="material-study"
                 style={{
-                  backgroundImage: `url(${import.meta.env.BASE_URL}images/illustrated-materials.png)`,
+                  backgroundImage: `url(${asset("images/illustrated-materials.png")})`,
                   backgroundPosition: overlay.material.position,
                 }}
               />

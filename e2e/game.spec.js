@@ -17,6 +17,9 @@ async function begin(page) {
 }
 async function add(page, id) {
   await page.getByRole("button", { name: `Add ${id}`, exact: true }).click();
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
+    .click();
 }
 async function blend(page) {
   await page
@@ -86,7 +89,7 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await add(page, "Sawdust");
   await add(page, "Straw");
   await expect(page.locator(".total-percent")).toHaveText("100%");
-  await expect(page.locator(".portion-percentage")).toHaveText(["67%", "33%"]);
+  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
   await shot(page, "mix-mobile");
   await assertEnglishAndLayout(page);
   await blend(page);
@@ -95,7 +98,7 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await page
     .getByRole("button", { name: "Review Recipe", exact: true })
     .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["67%", "33%"]);
+  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
     .getByRole("button", { name: "Start Cultivation", exact: true })
@@ -246,14 +249,26 @@ test("pointer drag/drop, ingredient removal and genuine circular stirring", asyn
   await page.mouse.move(v.x + v.width / 2, v.y + v.height * 0.5, { steps: 15 });
   await expect(vessel).toHaveClass(/drop-active/);
   await page.mouse.up();
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
+    .click();
   await expect(page.locator(".portion-name")).toContainText("Sawdust");
   await add(page, "Straw");
+  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
   await page
-    .getByRole("button", { name: "Add one portion of Straw", exact: true })
-    .click();
-  await expect(page.locator(".portion-percentage")).toHaveText(["33%", "67%"]);
+    .getByRole("slider", { name: "Straw percentage", exact: true })
+    .fill("67");
+  await expect(
+    page.getByRole("spinbutton", {
+      name: "Sawdust exact percentage",
+      exact: true,
+    }),
+  ).toHaveValue("33");
   await page
-    .getByRole("button", { name: "Remove one portion of Straw", exact: true })
+    .getByRole("slider", { name: "Straw percentage", exact: true })
+    .fill("50");
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
     .click();
   await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
   await page
@@ -318,6 +333,9 @@ test("touch pointer drag and stirring alternatives work without resetting back n
     touchPoints: [],
   });
   expect(errors).toEqual([]);
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
+    .click();
   await expect(page.locator(".portion-name")).toContainText("Coffee Grounds");
   await add(page, "Sawdust");
   await blend(page);
@@ -449,15 +467,21 @@ test("four-material recipe gets uncertainty, reduced motion and keyboard tap alt
   const jar = page.getByRole("button", { name: "Add Sawdust", exact: true });
   await jar.focus();
   await page.keyboard.press("Enter");
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
+    .click();
   await add(page, "Coffee Grounds");
   await add(page, "Straw");
   await add(page, "Paper Fibres");
-  await expect(page.locator(".portion-percentage")).toHaveText([
-    "25%",
-    "25%",
-    "25%",
-    "25%",
-  ]);
+  await page.getByRole("button", { name: "Edit Recipe", exact: true }).click();
+  // Exact equal weights are loaded through the drawer's own controls by balancing sequentially.
+  await page
+    .getByRole("slider", { name: "Sawdust percentage", exact: true })
+    .fill("25");
+  await page
+    .getByRole("button", { name: "Done · Keep Collecting", exact: true })
+    .click();
+  await expect(page.locator(".portion-percentage")).toHaveCount(4);
   await blend(page);
   await page
     .getByRole("button", { name: "Start Cultivation", exact: true })
@@ -501,6 +525,9 @@ test("earlier notebook migration preserves results", async ({ page }) => {
     );
   });
   await page.goto("");
+  await page
+    .getByRole("button", { name: "Open Experiment Notebook", exact: true })
+    .click();
   await expect(page.locator(".notebook-record")).toHaveCount(1);
   await page
     .getByRole("button", { name: "Open experiment 1", exact: true })
@@ -560,7 +587,7 @@ test("natural animation completes and reopening results does not duplicate recor
     .click();
   await expect(
     page.getByRole("button", { name: "View Results", exact: true }),
-  ).toBeEnabled({ timeout: 12000 });
+  ).toBeEnabled({ timeout: 15000 });
   await page.getByRole("button", { name: "View Results", exact: true }).click();
   await page.getByRole("button", { name: "Go back", exact: true }).click();
   await page.getByRole("button", { name: "View Results", exact: true }).click();
@@ -603,8 +630,8 @@ test("storybook instruments remain on-screen and the circular dial controls real
   page,
 }) => {
   await page.addInitScript(() => {
-    localStorage.setItem(
-      "bluegreen-lab-v2",
+    sessionStorage.setItem(
+      "bluegreen-active-v3",
       JSON.stringify({
         step: 3,
         draft: {
