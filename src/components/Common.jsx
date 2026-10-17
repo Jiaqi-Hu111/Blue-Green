@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ArrowLeft, X, Leaf, Info, Check } from "lucide-react";
 import { CONTEXT_HELP, SOURCES, REFERENCE_NOTES } from "../data/research";
 export const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
@@ -10,9 +10,10 @@ export function Button({
   className = "",
   ...props
 }) {
+  const reduced = useReducedMotion();
   return (
     <motion.button
-      whileTap={{ scale: 0.97 }}
+      whileTap={reduced ? undefined : { scale: 0.97 }}
       onClick={onClick}
       className={`button ${secondary ? "secondary" : "primary"} ${className}`}
       {...props}
@@ -44,7 +45,7 @@ export function Guide({ message, mood = "calm", compact = false }) {
             <stop offset="1" stopColor="#cfdfc3" />
           </radialGradient>
         </defs>
-        <g stroke="#cce9b8" fill="none" strokeWidth="1" opacity=".6">
+        <g stroke="#647b61" fill="none" strokeWidth="1" opacity=".8">
           <path d="M44 75q-25 11-28 22m21-15-20-2m16 6-3 11M48 75q21 8 26 23m-13-17 20 3m-16 1 4 12" />
         </g>
         <path
@@ -53,12 +54,32 @@ export function Guide({ message, mood = "calm", compact = false }) {
         />
         <path
           d="M9 46Q12 18 42 18q29-2 39 29Q70 58 49 54Q26 58 9 46Z"
-          fill="url(#guide-cream)"
+          fill="#bf7751"
+          stroke="#35413a"
+          strokeWidth="1.1"
         />
+        {[
+          [27, 32],
+          [40, 26],
+          [55, 30],
+          [65, 40],
+          [20, 42],
+        ].map(([x, y]) => (
+          <ellipse
+            key={x}
+            cx={x}
+            cy={y}
+            rx="2"
+            ry="1.4"
+            fill="#f3ebd9"
+            stroke="#705845"
+            strokeWidth=".5"
+          />
+        ))}
         <path
           d="M19 43q25-14 51 1M25 45q20-11 39 0"
           fill="none"
-          stroke="#b9ccb0"
+          stroke="#796747"
           strokeWidth="1"
         />
         <circle cx="37" cy="65" r="2" fill="#163f42" />

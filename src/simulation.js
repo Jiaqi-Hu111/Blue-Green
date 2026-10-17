@@ -84,13 +84,13 @@ export const OUTCOMES = {
   },
   failed: {
     title: "Something Interrupted the Growth.",
-    label: "Contamination Risk",
+    label: "High Contamination Risk",
     message:
       "The model flags preparation or environmental stress. The interrupted visualization is illustrative: no contamination has been observed or biologically diagnosed.",
   },
   unverified: {
     title: "An Experimental Discovery!",
-    label: "Unverified Recipe",
+    label: "Unverified Combination",
     message:
       "This combination is outside the model’s limited coverage. Its exploratory network does not predict growth, failure or material performance.",
   },

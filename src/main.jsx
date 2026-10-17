@@ -74,6 +74,7 @@ function App() {
     screenRef = useRef(null),
     autoRef = useRef(null),
     noticeTimer = useRef(null);
+  const stirringView = step === 2 && draft.mixing;
   const recipe = percentages(draft.portions),
     result = history.find((h) => h.id === resultId);
   useEffect(() => {
@@ -90,7 +91,7 @@ function App() {
       reduced ? 0 : 400,
     );
     return () => clearTimeout(t);
-  }, [step, reduced]);
+  }, [step, reduced, stirringView]);
   useEffect(() => {
     if (step !== 4 || !playing || draft.growthProgress >= 100) return;
     const t = setInterval(
@@ -178,8 +179,12 @@ function App() {
         : { ...d, [name]: value, runId: null, growthProgress: 0 },
     );
   }
-  function beginMix() {
-    modifyDraft((d) => ({ ...d, mixing: true, mixProgress: 0 }));
+  function beginMix(active = true) {
+    modifyDraft((d) => ({
+      ...d,
+      mixing: active !== false,
+      mixProgress: active === false ? d.mixProgress : 0,
+    }));
   }
   function stir(delta) {
     modifyDraft((d) => ({
@@ -306,7 +311,11 @@ function App() {
             <button
               className="icon-button back-button"
               aria-label="Go back"
-              onClick={() => move(step === 7 ? 6 : step - 1)}
+              onClick={() =>
+                step === 2 && draft.mixing
+                  ? beginMix(false)
+                  : move(step === 7 ? 6 : step - 1)
+              }
             >
               <ArrowLeft size={19} />
             </button>
@@ -321,9 +330,18 @@ function App() {
           </button>
         </div>
         <span className="header-context">
-          {step === 0 ? "MATERIAL FUTURES / VOLUME 02" : STAGE_NAMES[step]}
+          {step === 0 ? "A FIELD GUIDE TO MATERIAL FUTURES" : STAGE_NAMES[step]}
         </span>
         <div className="header-right">
+          {step === 0 && (
+            <button
+              className="icon-button"
+              aria-label="Open Experiment Notebook"
+              onClick={() => move(7)}
+            >
+              <BookOpen size={20} />
+            </button>
+          )}
           {step > 0 && (
             <button
               className="icon-button"
@@ -361,11 +379,20 @@ function App() {
             </button>
           ))}
           <span className="journey-caption">
-            {String(step + 1).padStart(2, "0")} / 08
+            {String(
+              step > 2 ? step + 2 : step === 2 && draft.mixing ? 4 : step + 1,
+            ).padStart(2, "0")}{" "}
+            / 09
           </span>
         </nav>
       )}
-      <main ref={screenRef} tabIndex={-1} aria-label={STAGE_NAMES[step]}>
+      <main
+        ref={screenRef}
+        tabIndex={-1}
+        aria-label={
+          step === 2 && draft.mixing ? "Stir Your Substrate" : STAGE_NAMES[step]
+        }
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -420,7 +447,10 @@ function App() {
                 recipe={recipe}
                 onField={field}
                 onStart={startCultivation}
-                onReview={() => move(2)}
+                onReview={() => {
+                  beginMix(false);
+                  move(2);
+                }}
               />
             )}
             {step === 4 && (
@@ -552,7 +582,7 @@ function App() {
               <div
                 className="material-study"
                 style={{
-                  backgroundImage: `url(${import.meta.env.BASE_URL}images/materials.png)`,
+                  backgroundImage: `url(${import.meta.env.BASE_URL}images/illustrated-materials.png)`,
                   backgroundPosition: overlay.material.position,
                 }}
               />

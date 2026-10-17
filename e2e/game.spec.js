@@ -6,11 +6,13 @@ async function begin(page) {
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: /A little waste/ }),
+    page.getByRole("heading", { name: /Welcome to the/ }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Start Mixing", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Begin Experiment", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: /Gather the ordinary/ }),
+    page.getByRole("heading", { name: /Mix Natural Ingredients/ }),
   ).toBeVisible();
 }
 async function add(page, id) {
@@ -74,7 +76,9 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
     .click();
   await expect(page.getByRole("dialog")).toContainText("Plant fibres");
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Start Mixing", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Begin Experiment", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Mix Ingredients", exact: true }),
   ).toBeDisabled();
@@ -522,7 +526,7 @@ test("desktop/tablet/compact-phone layouts and production subdirectory assets", 
       .getByRole("button", { name: "Enter the Laboratory", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Start Mixing", exact: true })
+      .getByRole("button", { name: "Begin Experiment", exact: true })
       .click();
     await assertEnglishAndLayout(page);
     await add(page, "Sawdust");
@@ -532,7 +536,11 @@ test("desktop/tablet/compact-phone layouts and production subdirectory assets", 
       .getByRole("button", { name: "Return to Welcome", exact: true })
       .click();
   }
-  for (const image of ["laboratory.png", "materials.png", "mycelium.png"]) {
+  for (const image of [
+    "coastal-storybook.png",
+    "illustrated-materials.png",
+    "mycelium.png",
+  ]) {
     const response = await request.get(`images/${image}`);
     expect(response.status()).toBe(200);
     expect(response.headers()["content-type"]).toMatch(/^image\//);
@@ -589,4 +597,101 @@ test("corrupted and denied browser storage allow a complete in-memory experiment
     }),
   ).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("storybook instruments remain on-screen and the circular dial controls real time", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "bluegreen-lab-v2",
+      JSON.stringify({
+        step: 3,
+        draft: {
+          portions: { sawdust: 2, straw: 1 },
+          mixProgress: 1,
+          mixing: true,
+          moisture: 62,
+          temperature: 24,
+          days: 18,
+          treated: true,
+        },
+        history: [],
+      }),
+    );
+  });
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("");
+    await page
+      .getByRole("heading", { name: "Incubation Period", exact: true })
+      .waitFor();
+    for (const label of [
+      "Drag temperature liquid",
+      "Drag substrate water level",
+      "Rotate incubation dial",
+    ]) {
+      const element = page.getByRole("slider", { name: label, exact: true });
+      await element.scrollIntoViewIfNeeded();
+      const r = await element.boundingBox();
+      expect(r.x).toBeGreaterThanOrEqual(0);
+      expect(r.x + r.width).toBeLessThanOrEqual(width);
+      await expect(element).toBeVisible();
+    }
+    for (const selector of [
+      ".instrument-reading",
+      ".day-value",
+      ".instrument-controls",
+    ]) {
+      for (const el of await page.locator(selector).all()) {
+        const r = await el.boundingBox();
+        expect(r.x + r.width).toBeLessThanOrEqual(width);
+      }
+    }
+    if (width === 390) await shot(page, "conditions-mobile");
+  }
+  const dial = page.getByRole("slider", {
+    name: "Rotate incubation dial",
+    exact: true,
+  });
+  await dial.scrollIntoViewIfNeeded();
+  const d = await dial.boundingBox();
+  await page.mouse.click(d.x + d.width * 0.9, d.y + d.height / 2);
+  await expect(dial).toHaveAttribute("aria-valuenow", "30");
+  await expect(page.locator(".day-value")).toContainText("30");
+  await dial.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(dial).toHaveAttribute("aria-valuenow", "29");
+});
+
+test("stirring is a distinct illustrated scene with substrate and no premature colonization", async ({
+  page,
+}) => {
+  await begin(page);
+  await add(page, "Sawdust");
+  await add(page, "Straw");
+  await page
+    .getByRole("button", { name: "Mix Ingredients", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Give it a swirl!", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Add Sawdust", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.locator(".mixing-room .growth-visualization")).toHaveCount(
+    0,
+  );
+  await shot(page, "stirring-mobile");
+  await page.getByRole("button", { name: "Auto Mix", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Your mixture is ready!", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review Ingredients", exact: true })
+    .click();
+  await expect(page.locator(".portion-percentage")).toHaveText(["50%", "50%"]);
+  await expect(
+    page.getByRole("heading", { name: "Mix Natural Ingredients", exact: true }),
+  ).toBeVisible();
 });

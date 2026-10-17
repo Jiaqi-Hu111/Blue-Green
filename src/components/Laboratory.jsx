@@ -3,40 +3,14 @@ import { motion, useReducedMotion } from "motion/react";
 import { Plus, Minus, Info, Check, Move, RotateCw, Leaf } from "lucide-react";
 import { MATERIALS } from "../simulation";
 import { asset, Button } from "./Common";
+import { CoastalWindow, BotanicalSprig } from "./Illustrations";
 export function LaboratoryScene({ children, variant = "", className = "" }) {
   return (
     <div className={`laboratory-scene ${variant} ${className}`}>
-      <div
-        className="scene-atmosphere"
-        style={{ backgroundImage: `url(${asset("images/laboratory.png")})` }}
-        aria-hidden="true"
-      />
+      <CoastalWindow className="scene-window" />
       <div className="scene-architecture" aria-hidden="true">
-        <div className="greenhouse-arch" />
-        <div className="greenhouse-line one" />
-        <div className="greenhouse-line two" />
-        <div className="hanging-plant plant-left">
-          {Array.from({ length: 7 }, (_, i) => (
-            <i key={i} style={{ "--leaf": i }} />
-          ))}
-        </div>
-        <div className="hanging-plant plant-right">
-          {Array.from({ length: 6 }, (_, i) => (
-            <i key={i} style={{ "--leaf": i }} />
-          ))}
-        </div>
-        <div className="ambient-particles">
-          {Array.from({ length: 12 }, (_, i) => (
-            <i
-              key={i}
-              style={{
-                left: `${8 + i * 7}%`,
-                top: `${20 + ((i * 17) % 60)}%`,
-                animationDelay: `${i * 0.6}s`,
-              }}
-            />
-          ))}
-        </div>
+        <BotanicalSprig className="edge-sprig" />
+        <div className="wooden-worktop" />
       </div>
       {children}
     </div>
@@ -47,7 +21,7 @@ export function MaterialTexture({ material, className = "", style = {} }) {
     <span
       className={`material-texture ${className}`}
       style={{
-        backgroundImage: `url(${asset("images/materials.png")})`,
+        backgroundImage: `url(${asset("images/illustrated-materials.png")})`,
         backgroundPosition: material.position,
         ...style,
       }}
@@ -261,6 +235,17 @@ export function MixingVessel({
       onPointerCancel={() => (gesture.current = null)}
     >
       <div className="vessel-halo" />
+      {mixing && progress < 1 && (
+        <svg className="swirl-lines" viewBox="0 0 340 300" aria-hidden="true">
+          <path
+            d="M71 132q-28-21 10-31m-10 2 10-2-4 11M272 135q28-19-8-32m10 5-10-5 0 10"
+            fill="none"
+            stroke="#548e87"
+            strokeWidth="1.6"
+            strokeDasharray="4 4"
+          />
+        </svg>
+      )}
       <svg className="vessel-glass" viewBox="0 0 340 300" aria-hidden="true">
         <defs>
           <linearGradient id={`glass-${id}`} x1="0" x2="1">
@@ -274,16 +259,17 @@ export function MixingVessel({
           cy="55"
           rx="129"
           ry="35"
-          fill="#193f3d"
-          stroke="#d2ecda"
-          strokeOpacity=".55"
+          fill="#b4d4cd"
+          fillOpacity=".16"
+          stroke="#35413a"
+          strokeOpacity=".85"
           strokeWidth="2"
         />
         <path
           d="M41 55C34 97 42 238 105 256Q170 280 235 256C298 238 306 97 299 55Q170 119 41 55"
           fill={`url(#glass-${id})`}
-          stroke="#c7e4d1"
-          strokeOpacity=".65"
+          stroke="#35413a"
+          strokeOpacity=".85"
           strokeWidth="1.3"
         />
         <path
@@ -302,7 +288,21 @@ export function MixingVessel({
           fill="#acc6a5"
           fillOpacity=".12"
         />
-        <path d="M105 270h130l12 16H93Z" fill="#8d644c" />
+        <path
+          d="M89 262Q170 249 251 262L251 285Q170 300 89 285Z"
+          fill="#b88b61"
+          stroke="#35413a"
+          strokeWidth="1.6"
+        />
+        {Array.from({ length: 20 }, (_, i) => (
+          <path
+            key={i}
+            d={`M${94 + i * 8} 264l${i % 2 ? 2 : -1} 19`}
+            stroke="#705a41"
+            strokeWidth=".8"
+            opacity=".6"
+          />
+        ))}
         <ellipse cx="170" cy="286" rx="81" ry="8" fill="#a77c62" />
         <ellipse
           cx="170"
@@ -310,7 +310,7 @@ export function MixingVessel({
           rx="129"
           ry="35"
           fill="none"
-          stroke="#c8e9b8"
+          stroke="#548e87"
           strokeOpacity={mixing ? ".85" : ".2"}
           strokeWidth={mixing ? "4" : "1"}
           strokeDasharray={`${progress * 560} 560`}

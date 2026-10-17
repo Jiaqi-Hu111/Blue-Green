@@ -35,30 +35,23 @@ import {
   ActionDock,
   asset,
 } from "./components/Common";
+import {
+  CoastalWindow,
+  StoryDivider,
+  BotanicalSprig,
+} from "./components/Illustrations";
 export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
   return (
     <section className="welcome-screen">
-      <div
-        className="welcome-art"
-        style={{ backgroundImage: `url(${asset("images/laboratory.png")})` }}
-        aria-hidden="true"
-      />
-      <div className="welcome-vignette" />
-      <div className="welcome-content">
-        <p className="eyebrow">
-          <span className="glow-dot" /> AN INTERACTIVE MATERIAL EXHIBITION
-        </p>
+      <div className="welcome-title">
+        <p className="eyebrow">A SMALL EXPERIMENT IN POSSIBILITY</p>
         <h1>BLUEGREEN</h1>
-        <h2>
-          From Waste
-          <br />
-          <em>to New Life</em>
-        </h2>
-        <p>
-          Discover how organic waste
-          <br />
-          can become something new.
-        </p>
+        <p className="welcome-subtitle">Mycelium Lab</p>
+        <StoryDivider />
+        <h2>From Waste to New Life</h2>
+      </div>
+      <div className="welcome-scene">
+        <CoastalWindow arched />
         <div className="welcome-specimen">
           <div className="welcome-specimen-glass">
             <GrowthVisualization
@@ -68,8 +61,19 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
               form="vase"
             />
           </div>
-          <span>FIG. 01 / A NEW BEGINNING</span>
+          <span>A MATERIAL’S NEXT CHAPTER</span>
         </div>
+        <div className="welcome-guide">
+          <Guide
+            message="Every new material begins with a little curiosity."
+            mood="happy"
+            compact
+          />
+        </div>
+        <div className="welcome-wood" />
+      </div>
+      <div className="welcome-content">
+        <p>Discover how organic waste can become something new.</p>
         <div className="welcome-actions">
           <Button onClick={onEnter}>
             Enter the Laboratory
@@ -85,14 +89,14 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
             About This Experience
           </button>
         </div>
-        <div className="welcome-bottom">
-          <span>COLLECT. CULTIVATE. REIMAGINE.</span>
-          <span>PLAYABLE / ILLUSTRATIVE / LOCAL</span>
-        </div>
+        <span className="welcome-bottom">
+          COLLECT · MIX · CULTIVATE · REIMAGINE
+        </span>
       </div>
     </section>
   );
 }
+
 export function LaboratoryIntroduction({ onStart, onMaterial }) {
   const ref = useRef(null);
   return (
@@ -101,12 +105,12 @@ export function LaboratoryIntroduction({ onStart, onMaterial }) {
         eyebrow="WELCOME TO YOUR WORKSPACE"
         title={
           <>
-            A little waste.
+            Welcome to the
             <br />
-            <em>A living possibility.</em>
+            <em>Mycelium Lab.</em>
           </>
         }
-        description="An ecological laboratory for curious minds."
+        description="Collect organic waste, mix your ingredients, and discover how new materials can grow."
         center
       />
       <LaboratoryScene variant="introduction">
@@ -124,11 +128,7 @@ export function LaboratoryIntroduction({ onStart, onMaterial }) {
           <span className="shelf-discovery">
             <span className="glow-dot" /> TAP A JAR TO DISCOVER ITS STORY
           </span>
-          <MixingVessel
-            vesselRef={ref}
-            recipe={{ sawdust: 60, straw: 40 }}
-            progress={0}
-          />
+          <MixingVessel vesselRef={ref} recipe={{}} progress={0} />
           <div className="culture-starter">
             <FlaskConical size={24} />
             <span>
@@ -139,19 +139,14 @@ export function LaboratoryIntroduction({ onStart, onMaterial }) {
         </div>
       </LaboratoryScene>
       <div className="intro-message">
-        <Guide message="Welcome to the Mycelium Lab!" mood="happy" />
-        <div>
-          <p>
-            Here, everyday waste can become the beginning of a new material.
-          </p>
-          <p>
-            Collect ingredients, create your mixture, and discover what grows.
-          </p>
-        </div>
+        <Guide
+          message="Welcome to the Mycelium Lab. A small beginning can become something remarkable."
+          mood="happy"
+        />
       </div>
       <ActionDock>
         <Button onClick={onStart}>
-          Start Mixing
+          Begin Experiment
           <ArrowRight size={18} />
         </Button>
       </ActionDock>
@@ -179,22 +174,32 @@ export function MixingScreen({
   }
   const count = Object.keys(draft.portions).length;
   return (
-    <section className="mix-screen">
+    <section
+      className={`mix-screen ${draft.mixing ? "stirring-screen" : "collecting-screen"}`}
+    >
       <ScreenHeading
-        eyebrow="STEP 01 / CREATE YOUR RECIPE"
-        title={
-          <>
-            Gather the ordinary.
-            <br />
-            <em>Make something new.</em>
-          </>
+        eyebrow={
+          draft.mixing
+            ? "CHAPTER III / THE BLEND"
+            : "CHAPTER II / THE INGREDIENTS"
         }
-        description="Drag a portion into the vessel, or tap a jar to add."
+        title={
+          draft.mixing
+            ? draft.mixProgress >= 1
+              ? "Your mixture is ready!"
+              : "Give it a swirl!"
+            : "Mix Natural Ingredients"
+        }
+        description={
+          draft.mixing
+            ? "Draw circles inside the vessel, or choose Auto Mix."
+            : "Drag ingredients into the vessel. Tap a jar to add a portion."
+        }
         center
       />
       <LaboratoryScene variant="mixing-room">
         <div className="mix-workbench">
-          <div className="ingredient-shelves">
+          <div className="ingredient-shelves" hidden={draft.mixing}>
             {MATERIALS.map((m) => (
               <IngredientJar
                 key={m.id}
@@ -228,14 +233,16 @@ export function MixingScreen({
             )}
             autoMixing={autoMixing}
           />
-          <StirringInteraction
-            mixing={draft.mixing}
-            progress={draft.mixProgress}
-            canMix={count >= 2}
-            onBegin={onBeginMix}
-            onAuto={onAuto}
-            autoMixing={autoMixing}
-          />
+          {draft.mixing && (
+            <StirringInteraction
+              mixing={draft.mixing}
+              progress={draft.mixProgress}
+              canMix={count >= 2}
+              onBegin={onBeginMix}
+              onAuto={onAuto}
+              autoMixing={autoMixing}
+            />
+          )}
         </div>
       </LaboratoryScene>
       {ghost && (
@@ -252,24 +259,31 @@ export function MixingScreen({
           {MATERIALS.find((m) => m.id === ghost.id).name}
         </div>
       )}
-      <IngredientTray
-        portions={draft.portions}
-        recipe={recipe}
-        onChange={onPortion}
-      />
-      <Guide
-        compact
-        message={
-          draft.mixProgress >= 1
-            ? "Your substrate is ready. Let’s give it a climate."
-            : draft.mixing
-              ? "Follow a circle. Connections start with a little movement."
-              : count
-                ? "A thoughtful blend begins with different textures."
-                : "The shelf is full of second chances. Choose at least two."
-        }
-        mood={draft.mixProgress >= 1 ? "happy" : "calm"}
-      />
+      {!draft.mixing && (
+        <IngredientTray
+          portions={draft.portions}
+          recipe={recipe}
+          onChange={onPortion}
+        />
+      )}
+      {!draft.mixing && draft.mixProgress < 1 && (
+        <StirringInteraction
+          mixing={false}
+          progress={draft.mixProgress}
+          canMix={count >= 2}
+          onBegin={onBeginMix}
+          onAuto={onAuto}
+          autoMixing={autoMixing}
+        />
+      )}
+      {draft.mixing && (
+        <button
+          className="text-link back-to-ingredients"
+          onClick={() => onBeginMix(false)}
+        >
+          Review Ingredients
+        </button>
+      )}
       {draft.mixProgress >= 1 && (
         <ActionDock>
           <Button onClick={onContinue}>
@@ -291,12 +305,12 @@ export function ConditionsScreen({
   return (
     <section className="conditions-screen">
       <ScreenHeading
-        eyebrow="STEP 02 / SET THE CONDITIONS"
+        eyebrow="CHAPTER IV / THE GROWING ENVIRONMENT"
         title={
           <>
-            A climate
+            Create Growth
             <br />
-            <em>for connections.</em>
+            <em>Conditions</em>
           </>
         }
         description="Operate your miniature lab. Every setting shapes the illustrative outcome."
@@ -322,10 +336,7 @@ export function ConditionsScreen({
           onChange={(v) => onField("treated", v)}
         />
       </LaboratoryScene>
-      <Guide
-        compact
-        message="Water in your substrate and humidity in the air are different things."
-      />
+
       <div className="culture-note">
         <FlaskConical size={20} />
         <p>
@@ -381,7 +392,7 @@ export function GrowthScreen({
   return (
     <section className="growth-screen">
       <ScreenHeading
-        eyebrow="STEP 03 / THE LIVING TRANSFORMATION"
+        eyebrow="CHAPTER V / THE OBSERVATION"
         title={
           <>
             Quietly, a network

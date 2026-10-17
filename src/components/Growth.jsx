@@ -56,8 +56,21 @@ export function GrowthVisualization({
           <path d={shape} />
         </clipPath>
       </defs>
-      <ellipse cx="202" cy="287" rx="151" ry="17" fill="#071a18" opacity=".3" />
-      <path d={shape} transform="translate(0 9)" fill="#71624a" />
+      <ellipse
+        cx="202"
+        cy="287"
+        rx="151"
+        ry="17"
+        fill="#705845"
+        opacity=".12"
+      />
+      <path
+        d={shape}
+        transform="translate(0 9)"
+        fill="#b59a73"
+        stroke="#35413a"
+        strokeWidth="1.4"
+      />
       <path
         d={shape}
         fill={`url(#${sample && outcome === "success" ? "sample" : "substrate"}-${id})`}
@@ -120,8 +133,8 @@ export function GrowthVisualization({
       <path
         d={shape}
         fill="none"
-        stroke="#e8e5d0"
-        strokeOpacity=".28"
+        stroke="#35413a"
+        strokeOpacity=".7"
         strokeWidth="1"
       />
     </svg>
