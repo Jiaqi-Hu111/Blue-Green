@@ -104,7 +104,7 @@ export const CONTEXT_HELP = [
   },
   {
     title: "Collect, drop & mix",
-    text: "Drag an ingredient into the vessel, or tap its jar. Use Edit Recipe to adjust exact percentages or remove materials. Choose at least two positive shares, then select Mix Ingredients. Draw circles inside the vessel to stir, or use Auto Mix.",
+    text: "Drag an ingredient into the vessel, or tap its jar. Use the inline Recipe Composition sliders or exact percentage inputs to adjust or remove materials. Choose at least two positive shares, then select Mix Ingredients. Draw circles inside the vessel to stir, or use Auto Mix.",
   },
   {
     title: "Set growing conditions",

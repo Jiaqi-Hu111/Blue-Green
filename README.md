@@ -25,15 +25,17 @@ Open `http://localhost:4173/Blue-Green/`. The primary mobile viewport is **390 �
 
 ## Nine visible stages
 
-1. **Welcome** — enter an original botanical greenhouse world; resume a current experiment without losing it.
+1. **Welcome** — start a fresh visitor journey, or explicitly choose Resume Previous Experiment.
 2. **Explore the Laboratory** — tap ingredient jars for material research notes and meet Milo, an original SVG mycelium guide.
-3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. An illustrated Recipe Drawer provides sliders and exact percentages. Nonempty blends always total 100%; zero-share selections remain editable.
+3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. A permanently visible parchment Recipe Composition panel sits below the vessel, with 5% sliders, exact percentage inputs and direct removal. Nonempty blends always total 100%; zero-share selections remain editable.
 4. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
 5. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
 6. **Watch Mycelium Grow** — observe four input-dependent, agent-based Canvas growth phases. Pause, play or skip. Reduced-motion mode begins paused; sequence progress is not measured colonization.
 7. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
 8. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
 9. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
+
+See [visitor reset policy, acceptance checks and mobile captures](docs/visitor-sessions-and-inline-recipes.md).
 
 The retained internal `portions` field is a compatibility representation of relative dry-substrate weights. New recipe edits use percentages, not repeated +1 taps or measured gram quantities. The mycelium culture is separate from waste percentages. **Optional Reference Recipe** supplies 60% sawdust / 40% straw at 62% substrate moisture, 24°C, 18 days and treated preparation, explicitly labelled as educational assumptions without a biological guarantee.
 
@@ -65,7 +67,7 @@ These publications provide material and fabrication context; the game’s rules 
 
 ## Local progress and previous experiments
 
-New visitor tabs start with an empty vessel. Same-tab reloads restore active progress from sessionStorage; legacy unfinished local recipes require explicit resume. Completed device records are merged into `bluegreen-history-v3`, while the original v1/v2 keys remain untouched. There is no automatic 24-record pruning or reevaluation of older outcomes.
+Enter the Laboratory and Begin Experiment always start a fresh visitor journey with an empty vessel, even in a reused tab. Same-tab reloads restore active progress from sessionStorage and pause cultivation. On Welcome, Resume Previous Experiment is a separate, explicit choice; Enter never resumes. Back/review navigation within the current experiment preserves the recipe. Legacy unfinished local recipes also require explicit resume. Completed device records are merged into `bluegreen-history-v3`, while the original v1/v2 keys remain untouched. There is no automatic 24-record pruning or reevaluation of older outcomes.
 
 The notebook lets visitors choose device persistence or tab-only storage for **new** records. Both choices preserve existing device history. No visitor data is sent to a server. Explicit new-experiment actions clear only active state; back/review navigation keeps the recipe. Storage failures are reported and corrupt notebook bytes are preserved instead of overwritten.
 
@@ -73,7 +75,8 @@ Older records retain their recorded outcomes/explanations and model version. Mis
 
 ## Reusable components
 
-- `src/components/Laboratory.jsx` — LaboratoryScene, IngredientJar, IngredientTray, MixingVessel, StirringInteraction.
+- `src/components/Laboratory.jsx` — LaboratoryScene, IngredientJar, MixingVessel, StirringInteraction.
+- `src/components/RecipeComposition.jsx` — inline 5% sliders, exact percentages, composition bar and removal.
 - `src/components/Instruments.jsx` — Thermometer, MoistureInstrument, IncubationDial, PreparationControl.
 - `src/components/Growth.jsx` — GrowthVisualization and rotatable MaterialSample.
 - `src/components/Results.jsx` — ResultPanel.
@@ -105,7 +108,7 @@ npm run test:e2e
 
 ## GitHub Pages and review
 
-This redesign is prepared on **`fix/experiment-growth-updates`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved. Each build emits a commit-SHA `version.json`; visitors get a safe, optional Update prompt for later deployments. Runtime images now have content-based filenames. GitHub Pages HTTP headers remain controlled by GitHub, not by this app.
+This redesign is prepared on **`fix/visitor-start-inline-recipe`** for review. Do not merge or deploy it without review. The existing production deployment workflow and base path are preserved. Each build emits a commit-SHA `version.json`; visitors get a safe, optional Update prompt for later deployments. Runtime images now have content-based filenames. GitHub Pages HTTP headers remain controlled by GitHub, not by this app.
 
 The repository is **Jiaqi-Hu111/Blue-Green**, with the case-sensitive Vite base **`/Blue-Green/`**. Screen navigation uses React state and browser history on the same document; no nested server routes or SPA redirect workaround are needed.
 

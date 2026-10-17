@@ -21,6 +21,17 @@ export function freshDraft() {
     runId: null,
   };
 }
+// Enter/Begin is a visitor boundary, even when this tab recovered an active run.
+// Keep the notebook, its privacy mode and numbering; replace only active work.
+export function startVisitor(state, step = 1) {
+  return {
+    ...state,
+    step,
+    draft: freshDraft(),
+    resultId: null,
+    resumeDraft: null,
+  };
+}
 const read = (storage, key, fallback = null) => {
   try {
     return JSON.parse(storage?.getItem(key) || "null") ?? fallback;

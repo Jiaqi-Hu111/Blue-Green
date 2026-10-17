@@ -45,7 +45,7 @@ The old `bluegreen-lab-v1` and `bluegreen-lab-v2` keys are read-only migration s
 | `bluegreen-session-history-v3` | sessionStorage | Session-only new records and pending completion backups               |
 | `bluegreen-notebook-privacy`   | localStorage   | Preference for device or tab-only storage of new records              |
 
-A new tab/session starts with an empty draft. Same-tab reloads preserve progress and resume cultivation paused. An unfinished legacy local draft is offered through **Continue Your Experiment**, not injected automatically into the vessel. Explicit new-experiment actions replace only active state. Back/review navigation keeps the current recipe.
+A new tab/session starts with an empty draft. Same-tab reloads preserve progress and resume cultivation paused. An unfinished legacy local draft is offered through **Resume Previous Experiment**, not injected automatically into the vessel. Enter and Begin always clear active state for a fresh visitor. Explicit new-experiment actions replace only active state. Back/review navigation keeps the current recipe.
 
 All legacy completed records are merged by ID without reevaluation or automatic pruning, including histories larger than the previous 24-record limit. Unknown record fields and raw legacy keys are retained. Concurrent device records are merged instead of replacing another tab's list. Corrupt device history is preserved rather than overwritten, and pending active/completed work is saved to the tab first where storage is available. Storage quota/security failures produce a notice; no application can guarantee persistence if browser storage is unavailable or the user clears it.
 
@@ -67,9 +67,9 @@ No numeric growing threshold has been widened to manufacture success. All thresh
 
 **Optional Reference Recipe** loads the named configuration without pre-completing mixing. The label explicitly states that favourable model conditions do not guarantee real biological success. Adjust, retry and compare keep the same four outcome IDs and recorded historical explanations.
 
-## Recipe Drawer
+## Inline recipe composition
 
-The four jars and existing storybook environment remain. Drop/tap adds a selection and opens an illustrated Recipe Drawer. Sliders and exact integer inputs rebalance the other selected shares using largest-remainder allocation; nonempty recipes total 100%. Zero-share selections remain editable, and removing an ingredient renormalizes the remainder. Two positive shares are required before mixing. Any actual recipe modification invalidates earlier stirring and run state. Textures and particle colours follow proportions; no fungal network is shown in mixing.
+The four jars and existing storybook environment remain. Drop/tap adds a selection without a popup. The permanently visible Recipe Composition panel below the vessel contains 5% sliders and exact integer inputs that rebalance the other selected shares using largest-remainder allocation; nonempty recipes total 100%. Zero-share selections remain editable, and removing an ingredient renormalizes the remainder. Two positive shares are required before mixing. Any actual recipe modification invalidates earlier stirring and run state. Textures and particle colours follow proportions; no fungal network is shown in mixing.
 
 ## Generative growth
 
@@ -82,10 +82,10 @@ The supplied article's C++ source was inspected through Git, including sensing, 
 ## Verification
 
 - Unit regressions cover reference success, every outcome category, unchanged boundaries, normalized ratios/zeros, legacy migration, append-only records beyond 24, concurrent merges and notebook privacy.
-- Browser tests exercise new visitors, reloads, new experiments, reference-to-result flow, comparison, mobile touch, drawer edits and invalidated stirring.
+- Browser tests exercise new visitors, reloads, new experiments, reference-to-result flow, comparison, mobile touch, inline ratio edits and invalidated stirring.
 - Cache tests serve two actual SHA-tagged Vite production builds with 600-second cache headers. A fresh normal URL loads the current build; a previously cached context is verified to use HTTP-cached resources, detects a later release, and preserves active conditions/history through Update. The final address contains no version query. Manifest and hashed-asset consistency are checked.
 - Growth tests check empty preparation, progressive stages, pause, deterministic restart, four distinct profiles, transparent pixels outside the substrate, hidden-page pause and static fallback. Stage screenshots are saved to `/tmp/growth-*.png`; recipe screenshots use `/tmp/bluegreen-*.png`.
 
-Validation: 21 unit tests and 19 Chromium browser tests passed, including the production build/cache fixture. [Review screenshots and a short growth recording](review/README.md) are included for comparison.
+The initial update/growth implementation passed 21 unit tests and 19 Chromium browser tests, including the production build/cache fixture. [Original review screenshots and a short growth recording](review/README.md) are retained for comparison. See [the visitor reset and inline controls review](visitor-sessions-and-inline-recipes.md) for the current interaction and captures.
 
-Review branch: `fix/experiment-growth-updates`. Production and the Pages deployment workflow are not merged or published automatically.
+Original implementation branch: `fix/experiment-growth-updates`; the visitor reset and inline controls refinement is on `fix/visitor-start-inline-recipe`. Production and the Pages deployment workflow are not merged or published automatically.

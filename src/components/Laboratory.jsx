@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useId } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Plus, Minus, Info, Check, Move, RotateCw, Leaf } from "lucide-react";
+import { Info, Check, RotateCw, Leaf } from "lucide-react";
 import { MATERIALS } from "../simulation";
 import { asset, Button } from "./Common";
 import { CoastalWindow, BotanicalSprig } from "./Illustrations";
@@ -128,46 +128,6 @@ export function IngredientJar({
         >
           <Info size={14} />
         </button>
-      )}
-    </div>
-  );
-}
-export function IngredientTray({ portions, recipe, onEdit }) {
-  return (
-    <div className="ingredient-tray">
-      <div className="tray-heading">
-        <span className="eyebrow">YOUR RECIPE</span>
-        <span className="total-percent">
-          {Object.keys(recipe).length ? "100%" : "EMPTY VESSEL"}
-        </span>
-      </div>
-      {!Object.keys(recipe).length ? (
-        <div className="tray-empty">
-          <p>Your vessel is empty.</p>
-          <p>Drag an ingredient into the vessel to begin.</p>
-        </div>
-      ) : (
-        <>
-          <div className="tray-portions">
-            {MATERIALS.filter((m) => Object.hasOwn(portions, m.id)).map((m) => (
-              <div className="portion-row" key={m.id}>
-                <MaterialTexture material={m} className="portion-thumbnail" />
-                <div className="portion-name">
-                  <strong>{m.name}</strong>
-                </div>
-                <span className="portion-percentage">{recipe[m.id] || 0}%</span>
-              </div>
-            ))}
-          </div>
-          <p className="fine-print">
-            {Object.values(recipe).filter((n) => n > 0).length >= 2
-              ? "Ready to Mix"
-              : "Choose at least two ingredients with positive shares."}
-          </p>
-          <Button secondary onClick={onEdit}>
-            Edit Recipe
-          </Button>
-        </>
       )}
     </div>
   );
