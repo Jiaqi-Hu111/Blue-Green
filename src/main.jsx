@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { MATERIALS, percentages, evaluate } from "./simulation";
 import { describeExperiment } from "./outcomeFeedback";
+import { GROWTH_DURATION_MS } from "./growthModel";
 import {
   persistState,
   HISTORY_KEY,
@@ -131,8 +132,11 @@ function App() {
     return () => document.removeEventListener("visibilitychange", visible);
   }, []);
   useEffect(() => {
-    if (step !== 4 || !playing || !pageVisible || draft.growthProgress >= 100)
+    if (step !== 4 || !playing || !pageVisible) return;
+    if (draft.growthProgress >= 100) {
+      setPlaying(false);
       return;
+    }
     let frame = 0,
       last = 0,
       carry = 0;
@@ -140,7 +144,7 @@ function App() {
       if (last) carry += Math.min(100, time - last);
       last = time;
       if (carry >= 100) {
-        const delta = carry / 90;
+        const delta = carry * 100 / GROWTH_DURATION_MS;
         carry = 0;
         setState((s) => ({
           ...s,

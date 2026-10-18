@@ -3,7 +3,9 @@ import { createPortal } from "react-dom";
 import { Play, Pause, Maximize2, RotateCcw } from "lucide-react";
 import { MATERIALS, OUTCOMES } from "../simulation";
 import {
-  TrailNetwork,
+  ColonisationNetwork,
+  SUBSTRATE_BOUNDS,
+  GROWTH_DURATION_MS,
   SUBSTRATE_PATH,
   growthTarget,
   hashSeed,
@@ -161,6 +163,9 @@ export function GenerativeGrowth({
     wake = useRef(null);
   const current = useRef({ progress, playing });
   const previous = useRef({ progress, playing });
+  const observed = useRef({ progress, at: 0 });
+  if (observed.current.progress !== progress)
+    observed.current = { progress, at: performance.now() };
   current.current = { progress, playing };
   const [fallback, setFallback] = useState(false),
     [expanded, setExpanded] = useState(false);
@@ -171,55 +176,21 @@ export function GenerativeGrowth({
       memory: navigator.deviceMemory || 8,
     }),
   );
-  const engineQuality = useRef(null);
   const seed = hashSeed(seedKey),
     composition = JSON.stringify(recipe);
   useEffect(() => {
-    let network, path, texture, ink, pixels, visibility;
+    let network, path, texture, ink, pixels;
     try {
       if (!canvas.current?.getContext("2d") || typeof Path2D === "undefined")
         throw Error("Canvas unavailable");
       path = new Path2D(SUBSTRATE_PATH);
-      network = new TrailNetwork({ outcome, seed, ...quality });
-      if (!engineQuality.current) {
-        // Calibrate once before the first visible field. Retain the chosen tier
-        // across Replay/Expand; never resize or replace an established network.
-        const samples = [];
-        for (let i = 0; i < 8; i++) {
-          const start = performance.now();
-          network.step();
-          if (i >= 4) samples.push(performance.now() - start);
-        }
-        const median = samples.sort((a, b) => a - b)[2];
-        // Predict each tier from measured per-cell cost. A large desktop probe
-        // can step down to 384/320 without unnecessarily jumping to 256.
-        engineQuality.current =
-          [
-            quality,
-            { width: 384, height: 264 },
-            { width: 320, height: 224 },
-            { width: 256, height: 176 },
-          ].find(
-            (tier) =>
-              tier.width <= quality.width &&
-              (median * tier.width * tier.height) / (quality.width * quality.height) <= 5,
-          ) || { width: 256, height: 176 };
-      }
-      network = new TrailNetwork({ outcome, seed, ...engineQuality.current });
+      network = new ColonisationNetwork({ outcome, seed, ...quality });
       texture = document.createElement("canvas");
       texture.width = network.width;
       texture.height = network.height;
       ink = texture.getContext("2d");
       pixels = ink?.createImageData(network.width, network.height);
       if (!pixels) throw Error("Canvas unavailable");
-      visibility = new Float32Array(network.field.length);
-      for (let i = 0; i < visibility.length; i++) {
-        visibility[i] = network.visibilityAt(i);
-        // Colour/habitat are constant for a run. Only alpha changes per frame.
-        pixels.data[i * 4] = outcome === "unverified" ? 231 : 249;
-        pixels.data[i * 4 + 1] = outcome === "unverified" ? 237 : 242;
-        pixels.data[i * 4 + 2] = outcome === "unverified" ? 210 : 218;
-      }
     } catch {
       setFallback(true);
       return;
@@ -228,7 +199,6 @@ export function GenerativeGrowth({
     let frame = 0,
       disposed = false,
       lastTime = 0,
-      debt = 0,
       force = true,
       painted = -1;
     let coverage = 0;
@@ -237,8 +207,9 @@ export function GenerativeGrowth({
       stepMs: [],
       frameMs: [],
       workMs: [],
-      quality: engineQuality.current,
-      agents: network.count,
+      quality,
+      tips: 0,
+      segments: 0,
     };
     const remember = (list, value) => {
       if (list.length >= 600) list.shift();
@@ -253,43 +224,48 @@ export function GenerativeGrowth({
       const { progress, playing } = current.current;
       const started = performance.now();
       if (lastTime && playing) remember(metrics.frameMs, now - lastTime);
-      if (playing && progress >= 20)
-        debt = Math.min(
-          12,
-          debt + (lastTime ? Math.min(100, now - lastTime) : 16.67) * 0.09,
-        );
-      else debt = 0;
+      // Interpolate between the parent's 100ms progress updates. This advances
+      // filament generation, never overlay opacity. Pause keeps the exact ink.
+      const interpolation = playing && observed.current.at
+        ? Math.min(100, now - observed.current.at) * 100 / GROWTH_DURATION_MS : 0;
+      const target = playing
+        ? Math.max(recoveryTarget, growthTarget(progress + interpolation))
+        : recoveryTarget;
       lastTime = now;
       let steps = 0;
-      while (
-        progress >= 20 &&
-        (network.iteration < recoveryTarget || debt >= 1) &&
-        steps < 12
-      ) {
+      while (network.iteration < target && steps < 16) {
         const before = performance.now();
         network.step();
         remember(metrics.stepMs, performance.now() - before);
-        debt = Math.max(0, debt - 1);
         steps++;
         if (performance.now() - started > 7) break;
       }
-      if (painted !== network.iteration || force) {
-        const reveal = Math.min(1, Math.max(0, (progress - 20) / 8));
-        let covered = 0;
-        for (let i = 0; i < network.field.length; i++) {
-          const at = i * 4,
-            value = network.field[i];
-          if (value * visibility[i] > 1.5) covered++;
-          // Reject weak background deposits instead of brightening/thickening ink.
-          pixels.data[at + 3] =
-            Math.max(0, (value - 0.85) / (value + 4)) *
-            245 *
-            reveal *
-            visibility[i];
+      // A paused checkpoint/Skip is reconstructed in short slices but presented
+      // atomically. Reduced-motion users never get an unsolicited fast replay.
+      const recovering = !playing && network.iteration < recoveryTarget;
+      let textureChanged = false;
+      if (!recovering && (painted !== network.iteration || force)) {
+        textureChanged = true;
+        const changed = network.dirtyCount;
+        for (let entry = 0; entry < changed; entry++) {
+          const i = network.dirty[entry];
+          network.dirtyFlags[i] = 0;
+          const value = network.field[i], at = i * 4;
+          // Early structural fibres stay above softer, slightly warmer infill.
+          // This is alpha compositing of two accumulated filament layers.
+          const spine = value ? network.backbone[i] / value : 0;
+          pixels.data[at] = 236 + 18 * spine;
+          pixels.data[at + 1] = 235 + 14 * spine;
+          pixels.data[at + 2] = 215 + 16 * spine;
+          pixels.data[at + 3] = value * 255;
         }
-        ink.putImageData(pixels, 0, 0);
+        // The retained RGBA image only needs changes for newly grown fibres.
+        if (changed) ink.putImageData(pixels, 0, 0);
+        network.dirtyCount = 0;
         painted = network.iteration;
-        coverage = covered / network.field.length;
+        coverage = network.coverage();
+        metrics.tips = network.tips.length;
+        metrics.segments = network.segments;
       }
       for (const node of [canvas.current, expandedCanvas.current]) {
         if (!node) continue;
@@ -297,7 +273,7 @@ export function GenerativeGrowth({
         // closing it repaints the lab from this same field without stepping.
         if (
           node === (expandedCanvas.current || canvas.current) &&
-          (steps || force)
+          (textureChanged || force)
         ) {
           if (force) {
             // Match the visible surface rather than rasterising a 1000px image
@@ -327,14 +303,15 @@ export function GenerativeGrowth({
           );
           context.save();
           context.clip(path);
-          context.drawImage(texture, 58, 66, 292, 213);
+          context.drawImage(texture, SUBSTRATE_BOUNDS.x, SUBSTRATE_BOUNDS.y,
+            SUBSTRATE_BOUNDS.width, SUBSTRATE_BOUNDS.height);
           context.restore();
         }
         node.dataset.iterations = String(network.iteration);
         node.dataset.coverage = String(coverage);
         node.dataset.seed = String(seed);
         node.dataset.stage =
-          progress < 20
+          progress < 15
             ? "preparation"
             : progress < 45
               ? "early"
@@ -345,7 +322,7 @@ export function GenerativeGrowth({
       }
       force = false;
       remember(metrics.workMs, performance.now() - started);
-      if (playing || network.iteration < recoveryTarget)
+      if ((playing && network.iteration < growthTarget(100)) || network.iteration < recoveryTarget)
         frame = requestAnimationFrame(paint);
     }
     function schedule({ reconstruct = false, resetClock = false } = {}) {
@@ -360,7 +337,10 @@ export function GenerativeGrowth({
       if (!document.hidden) frame = requestAnimationFrame(paint);
     }
     wake.current = schedule;
-    const onVisibility = () => schedule({ resetClock: true });
+    const onVisibility = () => {
+      observed.current.at = performance.now();
+      schedule({ resetClock: true });
+    };
     document.addEventListener("visibilitychange", onVisibility);
     const resize = () => schedule();
     window.addEventListener("resize", resize);
@@ -377,9 +357,10 @@ export function GenerativeGrowth({
   }, [seed, outcome, composition, quality, replayToken]);
   // React updates only control/stage state; simulation steps and painting stay outside React.
   useEffect(() => {
+    if (previous.current.playing !== playing)
+      observed.current.at = performance.now();
     wake.current?.({
-      reconstruct:
-        progress >= 100 && previous.current.progress < 100 && !playing,
+      reconstruct: progress >= 100,
       resetClock: previous.current.playing !== playing,
     });
     previous.current = { progress, playing };
@@ -394,7 +375,7 @@ export function GenerativeGrowth({
         outcome={outcome}
         canvasRef={canvas}
         fallback={fallback}
-        networkVisible={progress >= 20}
+        networkVisible={progress > 0}
       />
       <button
         className="text-link expand-network"
@@ -411,7 +392,7 @@ export function GenerativeGrowth({
             className="network-observer"
           >
             <p className="observation-note">
-              The same active network, seen closer. Physarum-inspired artwork;
+              The same accumulated filaments, seen closer. Stylised colonisation;
               not measured fungal growth.
             </p>
             <div className="observation-surface">
@@ -421,11 +402,11 @@ export function GenerativeGrowth({
                 canvasRef={expandedCanvas}
                 expanded
                 fallback={fallback}
-                networkVisible={progress >= 20}
+                networkVisible={progress > 0}
               />
             </div>
             <div className="observation-controls">
-              <Button secondary onClick={onPlay}>
+              <Button secondary onClick={onPlay} disabled={progress >= 100}>
                 {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
                 {playing ? "Pause" : "Play"}
               </Button>

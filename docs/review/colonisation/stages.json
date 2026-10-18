@@ -1,0 +1,66 @@
+[
+  {
+    "outcome": "success",
+    "progress": 0,
+    "coverage": "0",
+    "iterations": "0",
+    "tips": 0,
+    "segments": 0
+  },
+  {
+    "outcome": "success",
+    "progress": 25,
+    "coverage": "0.060786016719140155",
+    "iterations": "180",
+    "tips": 276,
+    "segments": 3932
+  },
+  {
+    "outcome": "success",
+    "progress": 50,
+    "coverage": "0.3272717403104983",
+    "iterations": "360",
+    "tips": 512,
+    "segments": 24301
+  },
+  {
+    "outcome": "success",
+    "progress": 75,
+    "coverage": "0.7012593638041472",
+    "iterations": "540",
+    "tips": 512,
+    "segments": 61118
+  },
+  {
+    "outcome": "success",
+    "progress": 100,
+    "coverage": "0.9350016284876778",
+    "iterations": "720",
+    "tips": 512,
+    "segments": 89593
+  },
+  {
+    "outcome": "incomplete",
+    "progress": 100,
+    "coverage": "0.5200086852676148",
+    "iterations": "720",
+    "tips": 512,
+    "segments": 42717
+  },
+  {
+    "outcome": "failed",
+    "progress": 100,
+    "coverage": "0.2",
+    "iterations": "720",
+    "tips": 512,
+    "segments": 16234
+  },
+  {
+    "outcome": "unverified",
+    "progress": 100,
+    "coverage": "0.630007599609163",
+    "iterations": "720",
+    "tips": 512,
+    "segments": 52753
+  }
+]

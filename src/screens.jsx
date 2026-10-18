@@ -377,16 +377,16 @@ export function ConditionsScreen({
 }
 export const GROWTH_PHASES = [
   {
-    title: "Substrate Preparation",
-    text: "Your selected preparation and a separate culture establish the modeled starting point.",
+    title: "Initial Growth",
+    text: "Small inoculation sites begin to develop within the exposed substrate. This is stylised, accelerated artwork.",
   },
   {
-    title: "Early Colonization",
+    title: "Spreading Hyphae",
     text: "Fine hyphae explore the substrate. Real growth also depends on species, inoculum and airflow.",
   },
   {
     title: "Network Formation",
-    text: "Connections appear across the mixture. Your inputs influence its illustrative coverage.",
+    text: "Branches meet and persist. New filaments fill spaces between the growing networks.",
   },
   {
     title: "Growth Assessment",
@@ -405,7 +405,7 @@ export function GrowthScreen({
 }) {
   const verdict = evaluate({ ...draft, recipe }),
     progress = draft.growthProgress,
-    phase = progress < 20 ? 0 : progress < 45 ? 1 : progress < 80 ? 2 : 3;
+    phase = progress < 15 ? 0 : progress < 45 ? 1 : progress < 80 ? 2 : 3;
   return (
     <section className="growth-screen">
       <ScreenHeading
@@ -465,11 +465,12 @@ export function GrowthScreen({
         </div>
         <div className="phase-explanation" aria-live="polite">
           <span className="eyebrow">PHASE 0{phase + 1}</span>
-          <h2>{GROWTH_PHASES[phase].title}</h2>
+          <h2>{phase === 3 && verdict.outcome === "success"
+            ? "Full Colonization" : GROWTH_PHASES[phase].title}</h2>
           <p>{GROWTH_PHASES[phase].text}</p>
         </div>
         <div className="growth-playback">
-          <Button secondary onClick={onPlay}>
+          <Button secondary onClick={onPlay} disabled={progress >= 100}>
             {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
             {playing ? "Pause" : "Play"}
           </Button>
@@ -489,24 +490,18 @@ export function GrowthScreen({
       <details className="growth-education">
         <summary>About this visualisation</summary>
         <p>
-          Inspired by agent-based organic network models: moving agents sense
-          nearby trails, turn, deposit traces and gradually diffuse or fade
-          them. Physarum is a slime mold, not fungal mycelium. This artwork does
-          not predict fungal branching, colonization, growth rates or material
-          performance.
+          Growing tips extend and branch from a few inoculation sites. Formed
+          filaments remain, meet neighbouring networks and develop finer branches
+          into gaps. The successful ending aims for roughly 90–95% visual coverage
+          as an artistic choice, not a laboratory success criterion. This stylised
+          sequence does not predict fungal morphology, colonization speed,
+          contamination or material performance.
         </p>
-        <a
-          href="https://www.pavelp.cz/posts/eng-cpp-slime-mold-simulation/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Read the visualisation reference
-        </a>
       </details>
       <p className="assumption-note">
         Accelerated illustrative timeline. Sequence progress is not a measured
-        colonization percentage. At assessment, the network keeps evolving while
-        Play is active.
+        colonization percentage. The final frame is an illustrative outcome;
+        Replay begins again with the original substrate.
       </p>
       {verdict.outcome === "unverified" && (
         <Guide

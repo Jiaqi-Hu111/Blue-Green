@@ -481,9 +481,14 @@ test("four-material recipe gets uncertainty, reduced motion and keyboard tap alt
   await expect(
     page.getByRole("button", { name: "Play", exact: true }),
   ).toBeVisible();
+  await expect(page.getByTestId("growth-network")).toHaveAttribute("data-coverage", "0");
+  await page.waitForTimeout(200);
+  await expect(page.getByTestId("growth-network")).toHaveAttribute("data-iterations", "0");
   await page
     .getByRole("button", { name: "Skip Animation", exact: true })
     .click();
+  await expect(page.getByTestId("growth-network")).toHaveAttribute("data-iterations", "720");
+  expect(Number(await page.getByTestId("growth-network").getAttribute("data-coverage"))).toBeGreaterThan(.55);
   await page.getByRole("button", { name: "View Results", exact: true }).click();
   await expect(
     page.getByRole("heading", {
@@ -579,7 +584,10 @@ test("natural animation completes and reopening results does not duplicate recor
     .click();
   await expect(
     page.getByRole("button", { name: "View Results", exact: true }),
-  ).toBeEnabled({ timeout: 15000 });
+  ).toBeEnabled({ timeout: 22000 });
+  await expect(page.getByTestId("growth-network")).toHaveAttribute("data-iterations", "720");
+  expect(Number(await page.getByTestId("growth-network").getAttribute("data-coverage"))).toBeGreaterThan(.9);
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "View Results", exact: true }).click();
   await page.getByRole("button", { name: "Go back", exact: true }).click();
   await page.getByRole("button", { name: "View Results", exact: true }).click();

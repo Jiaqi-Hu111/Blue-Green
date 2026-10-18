@@ -94,8 +94,8 @@ export function ResultPanel({
         <p>
           Published research supports general relationships. None of these
           sources validates BLUEGREEN’s exact bands, weights or outcome
-          classifications. Physarum is a slime mold, not fungal mycelium; the
-          animation is an artistic interpretation.
+          classifications or stylised imagery. The animation does not predict
+          fungal morphology, colonization speed or detected contamination.
         </p>
         <div
           className="evidence-table-scroll"

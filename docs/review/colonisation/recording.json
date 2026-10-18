@@ -1,0 +1,42 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "deviceScaleFactor": 2,
+  "events": [
+    {
+      "event": "Play",
+      "elapsedMs": 0
+    },
+    {
+      "event": "Expand same active network",
+      "elapsedMs": 4277
+    },
+    {
+      "event": "Pause",
+      "elapsedMs": 8298
+    },
+    {
+      "event": "Resume",
+      "elapsedMs": 9459
+    },
+    {
+      "event": "Completed",
+      "elapsedMs": 17301
+    },
+    {
+      "event": "Return to laboratory",
+      "elapsedMs": 18740
+    }
+  ],
+  "errors": [],
+  "coverage": "0.9350016284876778",
+  "iterations": "720",
+  "seed": "1363509514",
+  "quality": {
+    "width": 384,
+    "height": 264
+  },
+  "segments": 89593
+}
