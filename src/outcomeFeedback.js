@@ -197,7 +197,7 @@ export const EVIDENCE_TABLE = [
   {
     topic: "Classification & imagery",
     principle:
-      "These sources do not validate BLUEGREEN’s four deterministic outcomes or Physarum artwork.",
+      "These sources do not validate BLUEGREEN’s four deterministic outcomes or stylised growth artwork.",
     assumption:
       "Risk takes precedence: untreated, extreme inputs or three stress flags. Otherwise unsupported count/time is unverified. Within coverage: zero stress flags is favourable; one/two is incomplete. Visual density never changes a result.",
     sources: [],

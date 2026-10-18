@@ -31,7 +31,7 @@ async function hash(canvas) {
   });
 }
 
-test("expanded observation shares the active field, preserves pause/replay and evolves after assessment", async ({
+test("expanded observation shares the active field, preserves accumulated growth through pause, resume, resize and completed Replay", async ({
   page,
 }) => {
   test.setTimeout(60000);
@@ -61,18 +61,22 @@ test("expanded observation shares the active field, preserves pause/replay and e
   await expect(
     dialog.getByRole("button", { name: "Pause", exact: true }),
   ).toBeFocused();
-  await expect(main).toHaveAttribute("data-stage", "assessment", {
-    timeout: 14000,
+  await expect(main).toHaveAttribute("data-stage", "network", {
+    timeout: 10000,
   });
-  await page.waitForTimeout(2200);
-  const earlier = Number(await main.getAttribute("data-iterations")),
-    before = await hash(detail);
-  await page.waitForTimeout(650);
-  expect(Number(await main.getAttribute("data-iterations"))).toBeGreaterThan(
-    earlier,
-  );
-  expect(await hash(detail)).not.toBe(before);
   await dialog.getByRole("button", { name: "Pause", exact: true }).click();
+  const frozen = await hash(detail);
+  await page.waitForTimeout(350);
+  expect(await hash(detail)).toBe(frozen);
+  const formed = await detail.evaluate(el => Array.from(el.getContext("2d")
+    .getImageData(0, 0, el.width, el.height).data.filter((_, i) => i % 4 === 3)));
+  await dialog.getByRole("button", { name: "Play", exact: true }).click();
+  await page.waitForTimeout(700);
+  await dialog.getByRole("button", { name: "Pause", exact: true }).click();
+  expect(await hash(detail)).not.toBe(frozen);
+  const accumulated = await detail.evaluate(el => Array.from(el.getContext("2d")
+    .getImageData(0, 0, el.width, el.height).data.filter((_, i) => i % 4 === 3)));
+  expect(accumulated.every((a, i) => a >= formed[i])).toBe(true);
   await page.waitForTimeout(120);
   const paused = await main.getAttribute("data-iterations"),
     pausedHash = await hash(detail);
@@ -97,9 +101,14 @@ test("expanded observation shares the active field, preserves pause/replay and e
   await expect(detail).toHaveAttribute("data-iterations", paused);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => hash(detail)).toBe(pausedHash);
+  await dialog.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(detail).toHaveAttribute("data-iterations", "720", { timeout: 18000 });
+  const naturallyCompleted = await hash(detail);
+  await page.waitForTimeout(250);
+  await expect.poll(() => hash(detail)).toBe(naturallyCompleted);
   await dialog.getByRole("button", { name: "Replay", exact: true }).click();
   await expect(dialog).toBeVisible();
-  await expect(main).toHaveAttribute("data-iterations", "0");
+  await expect(main).toHaveAttribute("data-coverage", "0");
   await dialog.getByRole("button", { name: "Pause", exact: true }).click();
   await dialog
     .getByRole("button", { name: "Return to Laboratory", exact: true })
@@ -111,6 +120,12 @@ test("expanded observation shares the active field, preserves pause/replay and e
     timeout: 15000,
   });
   const replayHash = await hash(main);
+  await page.getByRole("button", { name: "Expand Network", exact: true }).click();
+  await expect.poll(() => hash(detail)).toBe(naturallyCompleted);
+  await dialog.getByRole("button", { name: "Return to Laboratory", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
+  await page.waitForTimeout(300);
+  expect(await hash(main)).toBe(replayHash);
   await page
     .getByRole("button", { name: "Restart Animation", exact: true })
     .click();
