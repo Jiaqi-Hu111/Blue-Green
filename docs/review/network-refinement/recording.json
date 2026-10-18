@@ -1,0 +1,24 @@
+{
+  "input": "60% sawdust / 40% straw; 62% moisture; 24\u00b0C; 18 days; treated",
+  "pauseIteration": "2138",
+  "cues": {
+    "playAt": 1.855,
+    "expandAt": 19.399,
+    "replayAt": 28.62
+  },
+  "quality": {
+    "width": 320,
+    "height": 224
+  },
+  "agents": 28672,
+  "seed": "1363509514",
+  "iterations": "522",
+  "errors": [],
+  "baselineCommit": "fde52d89aaf2976c7d24f8cf3b386ffda5070fac",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "referenceSourceCommit": "7dc0ab46948e59798f1c71f0182e0e9b310191ed",
+  "capture": "Actual local production-build browser output; expanded clip is a later segment of the same capture."
+}

@@ -3,7 +3,7 @@
 The visual approach is inspired by Pavel Peřina's agent-based Physarum simulation:
 
 - Article: https://www.pavelp.cz/posts/eng-cpp-slime-mold-simulation/
-- Source studied: https://github.com/pavel-perina/slime_mold
+- Source studied: https://github.com/pavel-perina/slime_mold (inspected commit `7dc0ab46948e59798f1c71f0182e0e9b310191ed`, simulation and preset implementations; article video and GUI output also examined).
 - Copyright (c) 2025 Pavel Peřina. MIT license reproduced in `licenses/pavel-perina-slime-mold-MIT.txt`.
 
 BLUEGREEN uses an independently written, bounded JavaScript/Canvas adaptation of ahead/left/right trail sensing, steering, trail deposition and fading, with an added low-weight spatial diffusion pass. It does not port C++/SIMD/UI code. The reference's current `diffuse` operation is evaporation rather than a spatial blur.

@@ -2,7 +2,8 @@
 export const SOURCES = [
   {
     id: "haneef2017",
-    title: "Advanced Materials From Fungal Mycelium",
+    title:
+      "Advanced Materials From Fungal Mycelium: Fabrication and Tuning of Physical Properties",
     authors: "Haneef et al.",
     year: 2017,
     journal: "Scientific Reports 7, 41292",
@@ -16,6 +17,24 @@ export const SOURCES = [
     year: 2019,
     journal: "Materials & Design 161, 64–71",
     url: "https://doi.org/10.1016/j.matdes.2018.11.027",
+  },
+  {
+    id: "elsacker2019",
+    title:
+      "Mechanical, physical and chemical characterisation of mycelium-based composites with different types of lignocellulosic substrates",
+    authors: "Elsacker et al.",
+    year: 2019,
+    journal: "PLOS ONE 14, e0213954",
+    url: "https://doi.org/10.1371/journal.pone.0213954",
+  },
+  {
+    id: "fungar2021",
+    title: "D5.2 — Report on preliminary characterisation and modelling",
+    authors: "FUNGAR consortium; CITA / Mogu",
+    year: 2021,
+    journal:
+      "Public technical report, EU H2020 grant 858132 (not peer reviewed)",
+    url: "https://cordis.europa.eu/project/id/858132/results",
   },
 ];
 export const REFERENCE_NOTES = [

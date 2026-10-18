@@ -11,6 +11,8 @@ import { OUTCOMES } from "../simulation";
 import { Button, Guide, ActionDock, ScreenHeading } from "./Common";
 import { MaterialSample } from "./Growth";
 import { ExperimentSummary } from "./Notebook";
+import { EVIDENCE_TABLE } from "../outcomeFeedback";
+import { SOURCES } from "../data/research";
 export function ResultPanel({
   result,
   onExplore,
@@ -42,7 +44,39 @@ export function ResultPanel({
             }
           />
           <p className="result-introduction">{outcome.message}</p>
-          <details className="result-analysis" open>
+          {result.feedback?.version === 1 && (
+            <div className="educational-feedback">
+              <h2>Your conditions, explained.</h2>
+              <p>{result.feedback.summary}</p>
+              <dl className="feedback-factors">
+                {result.feedback.factors.map((factor) => (
+                  <div key={factor.id}>
+                    <dt>
+                      {factor.label}
+                      <span className={"factor-status " + factor.status}>
+                        {factor.status === "within"
+                          ? "Within model"
+                          : factor.status === "outside"
+                            ? "Outside coverage"
+                            : factor.status === "risk"
+                              ? "Risk flag"
+                              : "Limiting flag"}
+                      </span>
+                    </dt>
+                    <dd>{factor.text}</dd>
+                  </div>
+                ))}
+              </dl>
+              <h3>Ideas for your next model experiment</h3>
+              <ul className="feedback-adjustments">
+                {result.feedback.adjustments.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <p className="fine-print">{result.feedback.note}</p>
+            </div>
+          )}
+          <details className="result-analysis" open={!result.feedback}>
             <summary>What shaped this outcome?</summary>
             <ol>
               {result.reasons.map((reason, i) => (
@@ -55,6 +89,61 @@ export function ResultPanel({
           </details>
         </div>
       </div>
+      <details className="result-evidence">
+        <summary>Scientific evidence & model assumptions</summary>
+        <p>
+          Published research supports general relationships. None of these
+          sources validates BLUEGREEN’s exact bands, weights or outcome
+          classifications. Physarum is a slime mold, not fungal mycelium; the
+          animation is an artistic interpretation.
+        </p>
+        <div
+          className="evidence-table-scroll"
+          role="region"
+          aria-label="Evidence and assumptions comparison"
+          tabIndex={0}
+        >
+          <table>
+            <caption>Research context and uncalibrated game rules</caption>
+            <thead>
+              <tr>
+                <th scope="col">Published principle</th>
+                <th scope="col">BLUEGREEN assumption</th>
+              </tr>
+            </thead>
+            <tbody>
+              {EVIDENCE_TABLE.map((row) => (
+                <tr key={row.topic}>
+                  <th scope="row">
+                    <strong>{row.topic}</strong>
+                    <p>{row.principle}</p>
+                    {row.sources.map((id) => {
+                      const source = SOURCES.find((s) => s.id === id);
+                      return (
+                        <a
+                          key={id}
+                          href={source.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {source.authors}, {source.year}
+                          {id === "fungar2021" ? " · technical report" : ""}
+                        </a>
+                      );
+                    })}
+                  </th>
+                  <td>{row.assumption}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="fine-print">
+          Species, inoculum, airflow, particle size and preparation protocols
+          are not represented fully. No success probability, material strength
+          or biological safety has been measured.
+        </p>
+      </details>
       <div className="result-recipe">
         <div>
           <p className="eyebrow">YOUR EXPERIMENT AT A GLANCE</p>
