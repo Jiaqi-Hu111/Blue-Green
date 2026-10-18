@@ -90,6 +90,13 @@ test("expanded observation shares the active field, preserves pause/replay and e
     .click();
   await expect(detail).toHaveAttribute("data-iterations", paused);
   await expect.poll(() => hash(detail)).toBe(pausedHash);
+  // Surface resizing changes raster resolution, not the paused simulation.
+  const originalSize = await detail.evaluate((el) => el.width);
+  await page.setViewportSize({ width: 430, height: 932 });
+  await expect.poll(() => detail.evaluate((el) => el.width)).not.toBe(originalSize);
+  await expect(detail).toHaveAttribute("data-iterations", paused);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => hash(detail)).toBe(pausedHash);
   await dialog.getByRole("button", { name: "Replay", exact: true }).click();
   await expect(dialog).toBeVisible();
   await expect(main).toHaveAttribute("data-iterations", "0");

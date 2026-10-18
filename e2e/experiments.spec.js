@@ -305,7 +305,11 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
     await page
       .getByRole("button", { name: "Skip Animation", exact: true })
       .click();
-    await expect(canvas).toHaveAttribute("data-iterations", "720");
+    // Dense reconstruction stays time-sliced; it must finish exactly, without
+    // imposing the former sparse field's five-second wall-clock assumption.
+    await expect(canvas).toHaveAttribute("data-iterations", "720", {
+      timeout: 15000,
+    });
     coverage.push(Number(await canvas.getAttribute("data-coverage")));
     await snapshot(page, {
       path: `/tmp/growth-${outcome}-assessment.png`,
@@ -316,7 +320,9 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
       const c = el.getContext("2d"),
         data = c.getImageData(0, 0, el.width, el.height).data;
       for (let x = 0; x < el.width; x++)
-        for (const y of [0, 20, 40, el.height - 20, el.height - 1])
+        for (const y of [0, 20, 40, 310, 329].map((v) =>
+          Math.floor((v / 330) * el.height),
+        ))
           if (data[(y * el.width + x) * 4 + 3]) return true;
       return false;
     });
@@ -329,7 +335,11 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
     await page
       .getByRole("button", { name: "Skip Animation", exact: true })
       .click();
-    await expect(canvas).toHaveAttribute("data-iterations", "720");
+    // Dense reconstruction stays time-sliced; it must finish exactly, without
+    // imposing the former sparse field's five-second wall-clock assumption.
+    await expect(canvas).toHaveAttribute("data-iterations", "720", {
+      timeout: 15000,
+    });
     expect(Number(await canvas.getAttribute("data-coverage"))).toBe(
       coverage.at(-1),
     );

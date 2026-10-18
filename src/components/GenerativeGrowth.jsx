@@ -175,7 +175,7 @@ export function GenerativeGrowth({
   const seed = hashSeed(seedKey),
     composition = JSON.stringify(recipe);
   useEffect(() => {
-    let network, path, texture, ink, pixels;
+    let network, path, texture, ink, pixels, visibility;
     try {
       if (!canvas.current?.getContext("2d") || typeof Path2D === "undefined")
         throw Error("Canvas unavailable");
@@ -191,8 +191,19 @@ export function GenerativeGrowth({
           if (i >= 4) samples.push(performance.now() - start);
         }
         const median = samples.sort((a, b) => a - b)[2];
+        // Predict each tier from measured per-cell cost. A large desktop probe
+        // can step down to 384/320 without unnecessarily jumping to 256.
         engineQuality.current =
-          median > 3.5 ? { width: 192, height: 136 } : quality;
+          [
+            quality,
+            { width: 384, height: 264 },
+            { width: 320, height: 224 },
+            { width: 256, height: 176 },
+          ].find(
+            (tier) =>
+              tier.width <= quality.width &&
+              (median * tier.width * tier.height) / (quality.width * quality.height) <= 5,
+          ) || { width: 256, height: 176 };
       }
       network = new TrailNetwork({ outcome, seed, ...engineQuality.current });
       texture = document.createElement("canvas");
@@ -201,6 +212,14 @@ export function GenerativeGrowth({
       ink = texture.getContext("2d");
       pixels = ink?.createImageData(network.width, network.height);
       if (!pixels) throw Error("Canvas unavailable");
+      visibility = new Float32Array(network.field.length);
+      for (let i = 0; i < visibility.length; i++) {
+        visibility[i] = network.visibilityAt(i);
+        // Colour/habitat are constant for a run. Only alpha changes per frame.
+        pixels.data[i * 4] = outcome === "unverified" ? 231 : 249;
+        pixels.data[i * 4 + 1] = outcome === "unverified" ? 237 : 242;
+        pixels.data[i * 4 + 2] = outcome === "unverified" ? 210 : 218;
+      }
     } catch {
       setFallback(true);
       return;
@@ -260,15 +279,13 @@ export function GenerativeGrowth({
         for (let i = 0; i < network.field.length; i++) {
           const at = i * 4,
             value = network.field[i];
-          if (value * network.visibilityAt(i) > 1.5) covered++;
-          pixels.data[at] = outcome === "unverified" ? 231 : 249;
-          pixels.data[at + 1] = outcome === "unverified" ? 237 : 242;
-          pixels.data[at + 2] = outcome === "unverified" ? 210 : 218;
+          if (value * visibility[i] > 1.5) covered++;
+          // Reject weak background deposits instead of brightening/thickening ink.
           pixels.data[at + 3] =
-            Math.max(0, (value - 0.35) / (value + 4)) *
+            Math.max(0, (value - 0.85) / (value + 4)) *
             245 *
             reveal *
-            network.visibilityAt(i);
+            visibility[i];
         }
         ink.putImageData(pixels, 0, 0);
         painted = network.iteration;
@@ -282,6 +299,18 @@ export function GenerativeGrowth({
           node === (expandedCanvas.current || canvas.current) &&
           (steps || force)
         ) {
+          if (force) {
+            // Match the visible surface rather than rasterising a 1000px image
+            // for a 310px dialog. Keep the simulation field independently fine.
+            const bounds = node.getBoundingClientRect();
+            const ratio = Math.min(2, window.devicePixelRatio || 1);
+            const width = Math.max(1, Math.round(bounds.width * ratio));
+            const height = Math.max(1, Math.round(bounds.height * ratio));
+            if (node.width !== width || node.height !== height) {
+              node.width = width;
+              node.height = height;
+            }
+          }
           const context = node.getContext("2d");
           const detail = node.dataset.expanded === "true";
           context.setTransform(1, 0, 0, 1, 0, 0);
@@ -331,14 +360,17 @@ export function GenerativeGrowth({
       if (!document.hidden) frame = requestAnimationFrame(paint);
     }
     wake.current = schedule;
-    const visibility = () => schedule({ resetClock: true });
-    document.addEventListener("visibilitychange", visibility);
+    const onVisibility = () => schedule({ resetClock: true });
+    document.addEventListener("visibilitychange", onVisibility);
+    const resize = () => schedule();
+    window.addEventListener("resize", resize);
     schedule();
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       wake.current = null;
-      document.removeEventListener("visibilitychange", visibility);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("resize", resize);
       texture.width = 0;
       texture.height = 0;
     };

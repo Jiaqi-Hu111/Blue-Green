@@ -5,41 +5,44 @@
 export const SUBSTRATE_PATH =
   "M68 92Q70 66 100 66H298Q328 66 332 96L349 235Q351 271 310 279H91Q50 271 52 238Z";
 export const ASSESSMENT_STEPS = 720;
+// Narrow sensors + gentler turns sustain small loops instead of rapidly merging
+// the whole population into a few coarse routes. Higher population reinforces
+// those fine connections; it does not increase displayed stroke width.
 export const VISUAL_PROFILES = Object.freeze({
   success: {
-    density: 0.4,
-    sensor: 4.3,
-    angle: 0.417,
-    turn: 0.95,
+    density: 0.7,
+    sensor: 3.6,
+    angle: 0.25,
+    turn: 0.7,
     evaporation: 0.77,
-    deposit: 1.4,
+    deposit: 1.55,
     habitat: 1,
   },
   incomplete: {
-    density: 0.32,
-    sensor: 4.3,
-    angle: 0.417,
-    turn: 0.95,
+    density: 0.56,
+    sensor: 3.6,
+    angle: 0.25,
+    turn: 0.7,
     evaporation: 0.77,
-    deposit: 1.2,
+    deposit: 1.33,
     habitat: 0.68,
   },
   failed: {
-    density: 0.28,
-    sensor: 4.3,
-    angle: 0.417,
-    turn: 0.95,
+    density: 0.49,
+    sensor: 3.6,
+    angle: 0.25,
+    turn: 0.7,
     evaporation: 0.77,
-    deposit: 1.1,
+    deposit: 1.22,
     habitat: 0.5,
   },
   unverified: {
-    density: 0.36,
-    sensor: 4.3,
-    angle: 0.45,
-    turn: 0.95,
+    density: 0.63,
+    sensor: 3.6,
+    angle: 0.27,
+    turn: 0.7,
     evaporation: 0.77,
-    deposit: 1.3,
+    deposit: 1.44,
     habitat: 0.82,
   },
 });
@@ -67,8 +70,8 @@ export function visualQuality({ width = 390, memory = 8 } = {}) {
   return memory <= 2
     ? { width: 256, height: 176 }
     : width < 720
-      ? { width: 320, height: 224 }
-      : { width: 448, height: 304 };
+      ? { width: 384, height: 264 }
+      : { width: 512, height: 352 };
 }
 export class TrailNetwork {
   constructor({
@@ -145,7 +148,9 @@ export class TrailNetwork {
       );
       if (l > forward && l > r) a -= turn;
       else if (r > forward && r > l) a += turn;
-      else if (forward === 0 || this.random() < 0.002)
+      // A rotating ~0.2% exploratory cohort avoids a random draw for every
+      // already-following agent. All agents still move/deposit every step.
+      else if (forward === 0 || ((i + this.iteration) & 511) === 0)
         a += Math.round((this.random() - 0.5) * 80);
       a &= MASK;
       this.heading[i] = a;
@@ -161,7 +166,7 @@ export class TrailNetwork {
     }
     const source = this.field,
       next = this.next,
-      diffusion = p.diffusion ?? 0.01;
+      diffusion = p.diffusion ?? 0.004;
     // Double-buffered spatial diffusion + evaporation without directional bias.
     for (let y = 0; y < h; y++) {
       const row = y * w,
