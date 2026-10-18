@@ -1,0 +1,62 @@
+[
+  {
+    "name": "previous",
+    "width": 320,
+    "height": 224,
+    "agents": 28672,
+    "step": 720,
+    "loops": 23,
+    "trailFraction": 0.12579520089285715,
+    "largestTrailShare": 0.9591882000665409
+  },
+  {
+    "name": "previous",
+    "width": 320,
+    "height": 224,
+    "agents": 28672,
+    "step": 3000,
+    "loops": 5,
+    "trailFraction": 0.08013392857142858,
+    "largestTrailShare": 0.9521239554317549
+  },
+  {
+    "name": "revised",
+    "width": 384,
+    "height": 264,
+    "agents": 70963,
+    "step": 720,
+    "loops": 261,
+    "trailFraction": 0.32017440025252525,
+    "largestTrailShare": 0.9528621603302729
+  },
+  {
+    "name": "revised",
+    "width": 384,
+    "height": 264,
+    "agents": 70963,
+    "step": 3000,
+    "loops": 265,
+    "trailFraction": 0.31535077335858586,
+    "largestTrailShare": 0.9464481216178172
+  },
+  {
+    "name": "revised-low",
+    "width": 256,
+    "height": 176,
+    "agents": 31539,
+    "step": 720,
+    "loops": 118,
+    "trailFraction": 0.3308327414772727,
+    "largestTrailShare": 0.9591439688715954
+  },
+  {
+    "name": "revised-low",
+    "width": 256,
+    "height": 176,
+    "agents": 31539,
+    "step": 3000,
+    "loops": 117,
+    "trailFraction": 0.3176935369318182,
+    "largestTrailShare": 0.9465558194774347
+  }
+]

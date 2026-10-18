@@ -127,3 +127,5 @@ The current scenes use original `coastal-storybook.png` scenery and an `illustra
 See [the network refinement review](docs/network-refinement.md) for before/after recordings, actual captures, algorithm parameters, performance observations and the scientific evidence/assumptions table. New completions save input-specific model feedback and suggested comparisons; historical explanations are retained.
 
 The observation canvas is a **Mycelium-inspired generative visualisation**, adapted from agent/trail concepts in a Physarum slime mold model. Physarum is not fungal mycelium. See [attribution and licensing](THIRD_PARTY_NOTICES.md). The animation never determines the educational outcome.
+
+See [the denser trail-field review](docs/dense-network-review.md) for the latest growth-only tuning, new video, close-up comparison and mobile performance observations.

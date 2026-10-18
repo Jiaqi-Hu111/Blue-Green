@@ -1,0 +1,18 @@
+{
+  "metrics": {
+    "iterations": "1210",
+    "coverage": "0.4088541666666667",
+    "quality": {
+      "width": 384,
+      "height": 264
+    },
+    "agents": 70963,
+    "seed": "1363509514"
+  },
+  "errors": [],
+  "durationMs": 17205,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  }
+}
