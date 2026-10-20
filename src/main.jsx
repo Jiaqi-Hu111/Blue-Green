@@ -53,7 +53,6 @@ import {
   ConditionsScreen,
   GrowthScreen,
 } from "./screens";
-import { ExperienceBackground } from "./components/Illustrations";
 import { ResultPanel } from "./components/Results";
 import { LifecycleGallery } from "./components/Lifecycle";
 import {
@@ -404,7 +403,6 @@ function App() {
   }
   return (
     <div className={`app-shell stage-${step}`}>
-      <ExperienceBackground />
       <DeploymentUpdate
         onBeforeUpdate={() => {
           try {
