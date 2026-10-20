@@ -1,5 +1,14 @@
 import { asset } from "./Common";
-/** Original, independent ink illustrations. Reference boards are never rendered; the supplied harbour photograph is scenery. */
+/** Original ink illustrations with the supplied, unmodified framed harbour scenery. */
+const SCENERY_IMAGE = "images/framed-harbour.png";
+
+export function ExperienceBackground() {
+  return (
+    <div className="experience-background" aria-hidden="true">
+      <img src={asset(SCENERY_IMAGE)} alt="" decoding="async" />
+    </div>
+  );
+}
 export function BotanicalSprig({ className = "" }) {
   return (
     <svg
@@ -45,7 +54,7 @@ export function CoastalWindow({ className = "", arched = false }) {
       className={`coastal-window ${arched ? "arched" : ""} ${className}`}
       aria-hidden="true"
     >
-      <img src={asset("images/harbour-background.png")} alt="" />
+      <img src={asset(SCENERY_IMAGE)} alt="" />
       <div className="window-mullion vertical" />
       <div className="window-mullion horizontal" />
       <span className="window-sill" />
