@@ -23,19 +23,18 @@ npm run preview
 
 Open `http://localhost:4173/Blue-Green/`. The primary mobile viewport is **390 × 844**, with responsive compact-phone, tablet and desktop layouts and safe-area support.
 
-## Nine visible stages
+## Eight visible stages
 
 1. **Welcome** — start a fresh visitor journey, or explicitly choose Resume Previous Experiment.
-2. **Explore the Laboratory** — tap ingredient jars for material research notes and meet Milo, an original SVG mycelium guide.
-3. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. A permanently visible parchment Recipe Composition panel sits below the vessel, with 5% sliders, exact percentage inputs and direct removal. Nonempty blends always total 100%; zero-share selections remain editable.
-4. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
-5. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
-6. **Watch Mycelium Grow** — observe a 16-second illustrative colonisation sequence: initial growth, spreading hyphae, network formation and an outcome-specific ending. Tips branch from five inoculation sites; all formed filaments persist and finer branches fill gaps. Pause, play, replay or skip. Expand Network shows the same accumulated field. The completed frame remains stable. Reduced-motion mode begins paused; sequence progress is not measured colonization.
-7. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
-8. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
-9. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
+2. **Collect, Drop & Mix** — collect at least two materials by dragging or tapping illustrated jars. A permanently visible parchment Recipe Composition panel sits below the vessel, with 5% sliders, exact percentage inputs and direct removal. Nonempty blends always total 100%; zero-share selections remain editable.
+3. **Stir Your Substrate** — the same lab clears around the vessel. Draw approximately two full circles or use **Auto Mix**. A wooden spoon, moving particles and the rim track progress. Review Ingredients preserves the blend.
+4. **Growth Conditions** — use the interactive thermometer, moisture vessel and circular incubation calendar. Precision sliders, a scrollable day selector and minus/plus controls remain accessible alternatives. Treatment, moisture, temperature and time are real inputs.
+5. **Watch Mycelium Grow** — observe a 16-second illustrative growth sequence: Growth Begins, Mycelium Spreads, Network Development and an outcome-specific ending. Tips branch from five inoculation sites; all formed filaments persist and finer branches fill gaps. Pause, play, replay or skip. Expand Network shows the same accumulated field. The completed frame remains stable. Reduced-motion mode begins paused; sequence progress is not measured mycelium growth.
+6. **Experiment Results** — read Favourable Growth, Incomplete Growth, High Contamination Risk or Unverified Combination, with input summaries and recorded explanations. Open details, pin a result or adjust and retry.
+7. **Material Lifecycle** — rotate conceptual forms and explore three applications and six lifecycle stops. Growth, moulding, drying and post-processing remain separate; disposal depends on composition and conditions.
+8. **Experiment Notebook** — open, duplicate and compare two experiments, including their model versions and changed inputs. Discarding an unfinished recipe requires confirmation.
 
-See [visitor reset policy, acceptance checks and mobile captures](docs/visitor-sessions-and-inline-recipes.md).
+See [the current entry flow, background and language review](docs/entry-and-language-review.md). Earlier [inline recipe review and captures](docs/visitor-sessions-and-inline-recipes.md) document the retained controls.
 
 The retained internal `portions` field is a compatibility representation of relative dry-substrate weights. New recipe edits use percentages, not repeated +1 taps or measured gram quantities. The mycelium culture is separate from waste percentages. **Optional Reference Recipe** supplies 60% sawdust / 40% straw at 62% substrate moisture, 24°C, 18 days and treated preparation, explicitly labelled as educational assumptions without a biological guarantee.
 
@@ -67,7 +66,7 @@ These publications provide material and fabrication context; the game’s rules 
 
 ## Local progress and previous experiments
 
-Enter the Laboratory and Begin Experiment always start a fresh visitor journey with an empty vessel, even in a reused tab. Same-tab reloads restore active progress from sessionStorage and pause cultivation. On Welcome, Resume Previous Experiment is a separate, explicit choice; Enter never resumes. Back/review navigation within the current experiment preserves the recipe. Legacy unfinished local recipes also require explicit resume. Completed device records are merged into `bluegreen-history-v3`, while the original v1/v2 keys remain untouched. There is no automatic 24-record pruning or reevaluation of older outcomes.
+Enter the Laboratory starts directly at Collect & Mix and always begins a fresh visitor journey with an empty vessel, even in a reused tab. Reloads open the landing page with a blank active recipe; Resume Previous Experiment explicitly restores the sessionStorage checkpoint, with cultivation paused. The pending checkpoint survives further landing-page reloads until Enter starts afresh or Resume restores it. On Welcome, Resume Previous Experiment is a separate, explicit choice; Enter never resumes. Back/review navigation within the current experiment preserves the recipe. Legacy unfinished local recipes also require explicit resume. Completed device records are merged into `bluegreen-history-v3`, while the original v1/v2 keys remain untouched. There is no automatic 24-record pruning or reevaluation of older outcomes.
 
 The notebook lets visitors choose device persistence or tab-only storage for **new** records. Both choices preserve existing device history. No visitor data is sent to a server. Explicit new-experiment actions clear only active state; back/review navigation keeps the recipe. Storage failures are reported and corrupt notebook bytes are preserved instead of overwritten.
 
@@ -122,11 +121,11 @@ The deployment installs from the lockfile, runs unit tests, builds Vite, and upl
 
 ## Artwork
 
-The current scenes use original `coastal-storybook.png` scenery and an `illustrated-materials.png` atlas, with independent SVG environmental layers and interactive objects. The reference boards are never rendered as screens. Earlier assets are retained for provenance. All imagery is illustrative, not a physical experiment record. See [the art-direction and reference mapping](docs/storybook-design.md) for details. No external image URL is required at runtime.
+The current scenes use the supplied `harbour-background.png` scenery (copied unchanged from `design-references/harbour-background.png.png`) and the original `illustrated-materials.png` atlas, with independent SVG environmental layers and interactive objects. The reference boards are never rendered as screens; the separately supplied harbour image is used only as scenery. Earlier assets are retained for provenance. All imagery is illustrative, not a physical experiment record. See [the art-direction and reference mapping](docs/storybook-design.md) for details. No external image URL is required at runtime.
 
 See [the network refinement review](docs/network-refinement.md) for before/after recordings, actual captures, algorithm parameters, performance observations and the scientific evidence/assumptions table. New completions save input-specific model feedback and suggested comparisons; historical explanations are retained.
 
-The observation canvas is a **Mycelium-inspired generative visualisation** using persistent growing tips and branching infill. The favourable ending targets 90–95% artistic raster coverage; it does not predict biological colonisation, speed, contamination or material performance. The animation never determines the educational outcome. Earlier Physarum references remain in [attribution and licensing](THIRD_PARTY_NOTICES.md).
+The observation canvas is a **Mycelium-inspired generative visualisation** using persistent growing tips and branching infill. The favourable ending targets 90–95% artistic raster coverage; it does not predict biological mycelium growth, speed, contamination or material performance. The animation never determines the educational outcome. Earlier Physarum references remain in [attribution and licensing](THIRD_PARTY_NOTICES.md).
 
 See [the denser trail-field review](docs/dense-network-review.md) for the previous trail-based tuning, video, close-up comparison and mobile performance observations.
 

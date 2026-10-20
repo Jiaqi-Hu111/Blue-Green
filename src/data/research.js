@@ -117,10 +117,7 @@ export const CONTEXT_HELP = [
     title: "Welcome to BLUEGREEN",
     text: "A playable exhibition about giving waste a new life. Enter the laboratory, build a recipe and explore an illustrative material lifecycle.",
   },
-  {
-    title: "Explore your workbench",
-    text: "Tap a jar to discover its material. A separate starter culture introduces mycelium; it is never counted as a waste ingredient.",
-  },
+  null, // Retired introductory stage; active journeys begin at step 2.
   {
     title: "Collect, drop & mix",
     text: "Drag an ingredient into the vessel, or tap its jar. Use the inline Recipe Composition sliders or exact percentage inputs to adjust or remove materials. Choose at least two positive shares, then select Mix Ingredients. Draw circles inside the vessel to stir, or use Auto Mix.",
@@ -131,7 +128,7 @@ export const CONTEXT_HELP = [
   },
   {
     title: "Observe the transformation",
-    text: "Pause or play the illustrated timeline, or skip to the assessment. Sequence progress is not a measurement of real colonization. The selected incubation period is simulated; no real days need to pass.",
+    text: "Pause or play the illustrated timeline, or skip to the assessment. Sequence progress is not a measurement of real mycelium growth. The selected incubation period is simulated; no real days need to pass.",
   },
   {
     title: "Read the findings",

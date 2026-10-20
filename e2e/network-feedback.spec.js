@@ -21,6 +21,7 @@ async function fixture(page, changes = {}, step = 4) {
     { draft: { ...reference, ...changes }, step },
   );
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
 }
 async function hash(canvas) {
   return canvas.evaluate((el) => {
@@ -190,6 +191,7 @@ test("all outcomes show input-specific feedback, real source identifiers and mod
       await feedback.screenshot({ path: "/tmp/feedback-" + outcome + ".png" });
   }
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(page.locator(".feedback-factors > div")).toHaveCount(5);
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("bluegreen-history-v3")),

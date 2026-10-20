@@ -392,7 +392,7 @@ export function GenerativeGrowth({
             className="network-observer"
           >
             <p className="observation-note">
-              The same accumulated filaments, seen closer. Stylised colonisation;
+              The same accumulated filaments, seen closer. Stylised mycelium growth;
               not measured fungal growth.
             </p>
             <div className="observation-surface">

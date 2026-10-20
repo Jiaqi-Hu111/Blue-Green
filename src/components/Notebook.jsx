@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { neutralGrowthText } from "../text";
 import {
   ArrowUpRight,
   Copy,
@@ -257,7 +258,7 @@ export function ComparisonPanel({ experiments }) {
           </h3>
           <ul>
             {h.reasons.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r}>{neutralGrowthText(r)}</li>
             ))}
           </ul>
         </div>

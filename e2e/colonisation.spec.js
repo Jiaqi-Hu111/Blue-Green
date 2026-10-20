@@ -26,6 +26,7 @@ test("exact checkpoints accumulate visible filaments into a nearly covered, text
       }
     })), progress);
     await page.reload();
+    await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
     const canvas = page.getByTestId("growth-network");
     await expect(canvas).toHaveAttribute("data-iterations", String(progress * 7.2));
     const coverage = Number(await canvas.getAttribute("data-coverage"));

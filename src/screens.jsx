@@ -11,7 +11,6 @@ import {
   Check,
   Info,
 } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
 import { positiveIngredientCount } from "./state";
 import { RecipeComposition } from "./components/RecipeComposition";
 import { MATERIALS, evaluate } from "./simulation";
@@ -40,7 +39,6 @@ import {
 import {
   CoastalWindow,
   StoryDivider,
-  BotanicalSprig,
 } from "./components/Illustrations";
 export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
   return (
@@ -50,7 +48,7 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
         <h1>BLUEGREEN</h1>
         <p className="welcome-subtitle">Mycelium Lab</p>
         <StoryDivider />
-        <h2>From Waste to New Life</h2>
+        <h2>From Waste to Mycelium</h2>
       </div>
       <div className="welcome-scene">
         <CoastalWindow arched />
@@ -99,62 +97,6 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
   );
 }
 
-export function LaboratoryIntroduction({ onStart, onMaterial }) {
-  const ref = useRef(null);
-  return (
-    <section className="intro-screen">
-      <ScreenHeading
-        eyebrow="WELCOME TO YOUR WORKSPACE"
-        title={
-          <>
-            Welcome to the
-            <br />
-            <em>Mycelium Lab.</em>
-          </>
-        }
-        description="Collect organic waste, mix your ingredients, and discover how new materials can grow."
-        center
-      />
-      <LaboratoryScene variant="introduction">
-        <div className="intro-workbench">
-          <div className="ingredient-shelves intro-shelves">
-            {MATERIALS.map((m) => (
-              <IngredientJar
-                key={m.id}
-                material={m}
-                explore
-                onInfo={onMaterial}
-              />
-            ))}
-          </div>
-          <span className="shelf-discovery">
-            <span className="glow-dot" /> TAP A JAR TO DISCOVER ITS STORY
-          </span>
-          <MixingVessel vesselRef={ref} recipe={{}} progress={0} />
-          <div className="culture-starter">
-            <FlaskConical size={24} />
-            <span>
-              MYCELIUM CULTURE
-              <small>Separate living starter · fixed illustration</small>
-            </span>
-          </div>
-        </div>
-      </LaboratoryScene>
-      <div className="intro-message">
-        <Guide
-          message="Welcome to the Mycelium Lab. A small beginning can become something remarkable."
-          mood="happy"
-        />
-      </div>
-      <ActionDock>
-        <Button onClick={onStart}>
-          Begin Experiment
-          <ArrowRight size={18} />
-        </Button>
-      </ActionDock>
-    </section>
-  );
-}
 export function MixingScreen({
   draft,
   recipe,
@@ -185,8 +127,8 @@ export function MixingScreen({
       <ScreenHeading
         eyebrow={
           draft.mixing
-            ? "CHAPTER III / THE BLEND"
-            : "CHAPTER II / THE INGREDIENTS"
+            ? "CHAPTER I / THE BLEND"
+            : "CHAPTER I / THE INGREDIENTS"
         }
         title={
           draft.mixing
@@ -318,7 +260,7 @@ export function ConditionsScreen({
   return (
     <section className="conditions-screen">
       <ScreenHeading
-        eyebrow="CHAPTER IV / THE GROWING ENVIRONMENT"
+        eyebrow="CHAPTER II / THE GROWING ENVIRONMENT"
         title={
           <>
             Create Growth
@@ -377,19 +319,19 @@ export function ConditionsScreen({
 }
 export const GROWTH_PHASES = [
   {
-    title: "Initial Growth",
+    title: "Growth Begins",
     text: "Small inoculation sites begin to develop within the exposed substrate. This is stylised, accelerated artwork.",
   },
   {
-    title: "Spreading Hyphae",
+    title: "Mycelium Spreads",
     text: "Fine hyphae explore the substrate. Real growth also depends on species, inoculum and airflow.",
   },
   {
-    title: "Network Formation",
+    title: "Network Development",
     text: "Branches meet and persist. New filaments fill spaces between the growing networks.",
   },
   {
-    title: "Growth Assessment",
+    title: "Full Mycelium Growth",
     text: "The sequence reaches its assessment. These visible threads are not measured biological growth.",
   },
 ];
@@ -409,7 +351,7 @@ export function GrowthScreen({
   return (
     <section className="growth-screen">
       <ScreenHeading
-        eyebrow="CHAPTER V / THE OBSERVATION"
+        eyebrow="CHAPTER III / THE OBSERVATION"
         title={
           <>
             Quietly, a network
@@ -465,8 +407,8 @@ export function GrowthScreen({
         </div>
         <div className="phase-explanation" aria-live="polite">
           <span className="eyebrow">PHASE 0{phase + 1}</span>
-          <h2>{phase === 3 && verdict.outcome === "success"
-            ? "Full Colonization" : GROWTH_PHASES[phase].title}</h2>
+          <h2>{phase === 3 && verdict.outcome !== "success"
+            ? "Growth Assessment" : GROWTH_PHASES[phase].title}</h2>
           <p>{GROWTH_PHASES[phase].text}</p>
         </div>
         <div className="growth-playback">
@@ -494,13 +436,13 @@ export function GrowthScreen({
           filaments remain, meet neighbouring networks and develop finer branches
           into gaps. The successful ending aims for roughly 90–95% visual coverage
           as an artistic choice, not a laboratory success criterion. This stylised
-          sequence does not predict fungal morphology, colonization speed,
+          sequence does not predict fungal morphology, growth speed,
           contamination or material performance.
         </p>
       </details>
       <p className="assumption-note">
         Accelerated illustrative timeline. Sequence progress is not a measured
-        colonization percentage. The final frame is an illustrative outcome;
+        mycelium growth percentage. The final frame is an illustrative outcome;
         Replay begins again with the original substrate.
       </p>
       {verdict.outcome === "unverified" && (

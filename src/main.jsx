@@ -20,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { MATERIALS, percentages, evaluate } from "./simulation";
+import { neutralGrowthText } from "./text";
 import { describeExperiment } from "./outcomeFeedback";
 import { GROWTH_DURATION_MS } from "./growthModel";
 import {
@@ -48,7 +49,6 @@ import {
 } from "./components/Common";
 import {
   Welcome,
-  LaboratoryIntroduction,
   MixingScreen,
   ConditionsScreen,
   GrowthScreen,
@@ -66,7 +66,7 @@ cleanReleaseMarker();
 import "./style.css";
 const STAGE_NAMES = [
   "Welcome",
-  "Explore the Laboratory",
+  null, // Retired introduction; saved step 1 is mapped to the mixing stage.
   "Collect & Mix",
   "Growth Conditions",
   "Watch Mycelium Grow",
@@ -178,7 +178,10 @@ function App() {
         setPlaying(false);
         clearInterval(autoRef.current);
         setAutoMixing(false);
-        setState((s) => ({ ...s, step: e.state.bluegreenStep }));
+        setState((s) => ({
+          ...s,
+          step: e.state.bluegreenStep === 1 ? 2 : e.state.bluegreenStep,
+        }));
       }
     };
     window.history.replaceState({ bluegreenStep: step }, "");
@@ -211,6 +214,7 @@ function App() {
     noticeTimer.current = setTimeout(() => setNotice(""), 4500);
   }
   function move(n) {
+    if (n === 1) n = 2; // Compatibility with browser history from the retired screen.
     setPlaying(false);
     setAutoMixing(false);
     clearInterval(autoRef.current);
@@ -315,6 +319,8 @@ function App() {
         draft: next,
         resultId: null,
         resumeDraft: null,
+        resumeStep: null,
+        resumeResultId: null,
       }));
       setOverlay(null);
       move(after);
@@ -336,7 +342,7 @@ function App() {
   function newExperiment() {
     replaceDraft(freshDraft());
   }
-  function enterVisitor(step = 1) {
+  function enterVisitor(step = 2) {
     setState((s) => startVisitor(s, step));
     setOverlay(null);
     setReplay(0);
@@ -371,8 +377,20 @@ function App() {
   function resume() {
     if (state.resumeDraft) {
       const next = state.resumeDraft;
-      setState((s) => ({ ...s, draft: next, resumeDraft: null }));
-      move(next.mixProgress >= 1 ? 3 : 2);
+      setState((s) => ({
+        ...s,
+        draft: next,
+        resultId: s.resumeResultId,
+        resumeDraft: null,
+        resumeStep: null,
+        resumeResultId: null,
+      }));
+      move(
+        state.resumeStep ||
+          (next.runId && next.growthProgress > 0
+            ? 4
+            : next.mixProgress >= 1 ? 3 : 2),
+      );
       return;
     }
     move(
@@ -405,7 +423,7 @@ function App() {
               onClick={() =>
                 step === 2 && draft.mixing
                   ? beginMix(false)
-                  : move(step === 7 ? 6 : step - 1)
+                  : move(step === 2 ? 0 : step === 7 ? 6 : step - 1)
               }
             >
               <ArrowLeft size={19} />
@@ -453,16 +471,16 @@ function App() {
       </header>
       {step > 0 && (
         <nav className="journey-progress" aria-label="Experiment journey">
-          {STAGE_NAMES.slice(1).map((name, i) => (
+          {STAGE_NAMES.slice(2).map((name, i) => (
             <button
               key={name}
               title={name}
               aria-label={`Go to ${name}`}
-              aria-current={step === i + 1 ? "step" : undefined}
-              disabled={i + 1 > step}
-              onClick={() => move(i + 1)}
+              aria-current={step === i + 2 ? "step" : undefined}
+              disabled={i + 2 > step}
+              onClick={() => move(i + 2)}
               className={
-                step === i + 1 ? "active" : step > i + 1 ? "completed" : ""
+                step === i + 2 ? "active" : step > i + 2 ? "completed" : ""
               }
             >
               <span />
@@ -470,10 +488,7 @@ function App() {
             </button>
           ))}
           <span className="journey-caption">
-            {String(
-              step > 2 ? step + 2 : step === 2 && draft.mixing ? 4 : step + 1,
-            ).padStart(2, "0")}{" "}
-            / 09
+            {String(step - 1).padStart(2, "0")} / 06
           </span>
         </nav>
       )}
@@ -502,21 +517,13 @@ function App() {
           >
             {step === 0 && (
               <Welcome
-                onEnter={() => enterVisitor(1)}
+                onEnter={() => enterVisitor(2)}
                 onAbout={() => setOverlay({ kind: "help" })}
                 hasProgress={
                   !!state.resumeDraft ||
                   Object.values(draft.portions).some((n) => n > 0)
                 }
                 onResume={resume}
-              />
-            )}
-            {step === 1 && (
-              <LaboratoryIntroduction
-                onStart={() => enterVisitor(2)}
-                onMaterial={(m) =>
-                  setOverlay({ kind: "material", material: m })
-                }
               />
             )}
             {step === 2 && (
@@ -666,7 +673,7 @@ function App() {
                     Run Another Experiment
                     <RotateCcw size={17} />
                   </Button>
-                  <Button secondary onClick={() => move(1)}>
+                  <Button secondary onClick={() => move(2)}>
                     Return to the Laboratory
                     <ArrowRight size={17} />
                   </Button>
@@ -804,7 +811,7 @@ function App() {
               <h3>Recorded explanations</h3>
               <ul className="details-reasons">
                 {overlay.entry.reasons.map((r) => (
-                  <li key={r}>{r}</li>
+                  <li key={r}>{neutralGrowthText(r)}</li>
                 ))}
               </ul>
             </>

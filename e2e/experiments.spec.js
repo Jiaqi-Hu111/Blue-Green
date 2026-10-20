@@ -14,9 +14,6 @@ async function begin(page) {
   await page
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
 }
 async function add(page, name) {
   await page.getByRole("button", { name: `Add ${name}`, exact: true }).click();
@@ -167,6 +164,7 @@ test("zero shares disable mixing, removal rebalances, editing after stirring res
     page.getByRole("button", { name: "Mix Ingredients", exact: true }),
   ).toBeDisabled();
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await page
     .getByRole("slider", { name: "Straw percentage", exact: true })
     .fill("40");
@@ -274,6 +272,7 @@ test("procedural growth stages, pause/restart, clipping and four distinct outcom
       [outcome, moisture, temperature, treated, days],
     );
     await page.reload();
+    await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
     const canvas = page.getByTestId("growth-network");
     await expect(canvas).toHaveAttribute("data-iterations", "0");
     await snapshot(page, {
@@ -378,6 +377,7 @@ test("hidden pages pause growth and unsupported Canvas keeps a static fallback",
     ),
   );
   await page.goto("");
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.waitForTimeout(200);
   await page.evaluate(() => {
@@ -403,6 +403,7 @@ test("hidden pages pause growth and unsupported Canvas keeps a static fallback",
     HTMLCanvasElement.prototype.getContext = () => null;
   });
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(
     page.getByText("Static illustrative frame · Canvas unavailable", {
       exact: true,
