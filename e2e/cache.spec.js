@@ -119,6 +119,11 @@ test("fresh normal URL and previously cached context update safely while retaini
   await cdp.send("Network.enable");
   let cacheHits = 0;
   cdp.on("Network.requestServedFromCache", () => cacheHits++);
+  // Chromium can report disk-cache reuse on the response rather than through
+  // requestServedFromCache (which reliably covers the memory-cache path).
+  cdp.on("Network.responseReceived", ({ response }) => {
+    if (response.fromDiskCache || response.fromPrefetchCache) cacheHits++;
+  });
   await page.goto(url);
   await page
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
@@ -215,7 +220,7 @@ test("production output has coherent SHA manifest and content-hashed JS, CSS and
   expect(existsSync(resolve(newDir, js))).toBe(true);
   expect(existsSync(resolve(newDir, css))).toBe(true);
   const bundle = readFileSync(resolve(newDir, js), "utf8");
-  expect(bundle).toMatch(/assets\/harbour-background-[a-f0-9]{12}\.png/);
+  expect(bundle).toMatch(/assets\/framed-harbour-[a-f0-9]{12}\.png/);
   expect(bundle).toMatch(/assets\/illustrated-materials-[a-f0-9]{12}\.png/);
   expect(bundle).not.toContain("serviceWorker.register");
 });

@@ -46,15 +46,33 @@ async function assertEnglishAndLayout(page) {
   const content = await page.locator("body").innerText();
   expect(content).not.toMatch(/[\u3400-\u9fff]/);
   expect(content).not.toMatch(/colon(?:iz|is)(?:ation|e|ed|ing)/i);
-  await expect(page.locator('img[src*="coastal-storybook"]')).toHaveCount(0);
+  await expect(page.locator('img[src*="coastal-storybook"], img[src*="harbour-background"]')).toHaveCount(0);
+  const backdrop = page.locator(".experience-background > img");
+  await expect(backdrop).toHaveCount(1);
+  await expect(backdrop).toHaveAttribute("src", /\/Blue-Green\/assets\/framed-harbour-[a-f0-9]{12}\.png$/);
+  await expect(backdrop).toHaveCSS("object-fit", "contain");
+  await expect(backdrop).toHaveCSS("filter", "none");
+  await expect(backdrop).toHaveCSS("opacity", "1");
+  await expect.poll(() => backdrop.evaluate(el => el.complete && el.naturalWidth === 1076 && el.naturalHeight === 808)).toBe(true);
+  const fixed = await backdrop.boundingBox();
+  expect(fixed.x).toBe(0);
+  expect(fixed.y).toBe(0);
+  expect(fixed.width).toBe(page.viewportSize().width);
+  expect(fixed.height).toBe(page.viewportSize().height);
+  // State changes and page transitions reuse the same background element.
+  expect(await backdrop.evaluate(el => {
+    const previous = window.__bluegreenBackdrop || el;
+    window.__bluegreenBackdrop = el;
+    return previous === el;
+  })).toBe(true);
   for (const img of await page.locator(".coastal-window > img").all()) {
-    await expect(img).toHaveAttribute("src", /\/Blue-Green\/assets\/harbour-background-[a-f0-9]{12}\.png$/);
-    await expect(img).toHaveCSS("object-fit", "cover");
+    await expect(img).toHaveAttribute("src", /\/Blue-Green\/assets\/framed-harbour-[a-f0-9]{12}\.png$/);
+    await expect(img).toHaveCSS("object-fit", "contain");
     await expect(img).toHaveCSS("filter", "none");
     await expect(img.locator("..")).toHaveCSS("opacity", "1");
     await expect.poll(() => img.evaluate(el => ({ loaded: el.complete,
       width: el.naturalWidth, height: el.naturalHeight }))).toEqual({
-      loaded: true, width: 1154, height: 870,
+      loaded: true, width: 1076, height: 808,
     });
   }
   const labels = await page
@@ -565,7 +583,7 @@ test("desktop/tablet/compact-phone layouts and production subdirectory assets", 
       .click();
   }
   for (const image of [
-    "harbour-background.png",
+    "framed-harbour.png",
     "illustrated-materials.png",
     "mycelium.png",
   ]) {
