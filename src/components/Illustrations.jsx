@@ -1,5 +1,5 @@
 import { asset } from "./Common";
-/** Original, independent ink illustrations. Reference boards are never rendered. */
+/** Original, independent ink illustrations. Reference boards are never rendered; the supplied harbour photograph is scenery. */
 export function BotanicalSprig({ className = "" }) {
   return (
     <svg
@@ -45,7 +45,7 @@ export function CoastalWindow({ className = "", arched = false }) {
       className={`coastal-window ${arched ? "arched" : ""} ${className}`}
       aria-hidden="true"
     >
-      <img src={asset("images/coastal-storybook.png")} alt="" />
+      <img src={asset("images/harbour-background.png")} alt="" />
       <div className="window-mullion vertical" />
       <div className="window-mullion horizontal" />
       <span className="window-sill" />

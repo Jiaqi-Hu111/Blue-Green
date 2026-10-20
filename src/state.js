@@ -21,15 +21,17 @@ export function freshDraft() {
     runId: null,
   };
 }
-// Enter/Begin is a visitor boundary, even when this tab recovered an active run.
+// Enter is a visitor boundary, even when this tab recovered an active run.
 // Keep the notebook, its privacy mode and numbering; replace only active work.
-export function startVisitor(state, step = 1) {
+export function startVisitor(state, step = 2) {
   return {
     ...state,
-    step,
+    step: step === 1 ? 2 : step,
     draft: freshDraft(),
     resultId: null,
     resumeDraft: null,
+    resumeStep: null,
+    resumeResultId: null,
   };
 }
 const read = (storage, key, fallback = null) => {
@@ -148,15 +150,21 @@ export function loadState(local, session) {
     privacy:
       read(local, PRIVACY_KEY, "device") === "session" ? "session" : "device",
     resumeDraft: null,
+    resumeStep: null,
+    resumeResultId: null,
   };
-  // Same-tab reload preserves progress. A fresh tab never auto-loads a local recipe.
-  if (active?.draft)
-    return {
-      ...empty,
-      step: Math.round(clamp(active.step, 0, 7, 0)),
-      draft: sanitizeDraft(active.draft),
-      resultId: typeof active.resultId === "string" ? active.resultId : null,
-    };
+  // A reload also starts on the landing page. Keep the recoverable snapshot
+  // separate until Resume is explicitly selected; never activate it silently.
+  const pending = active?.resumeDraft || active?.draft;
+  if (pending && Object.values(selected(pending.portions)).some((n) => n > 0)) {
+    empty.resumeDraft = sanitizeDraft(pending);
+    const savedStep = Math.round(clamp(active.resumeStep ?? active.step, 0, 7, 0));
+    empty.resumeStep = savedStep === 1 ? 2 : savedStep;
+    const savedId = active.resumeResultId ?? active.resultId;
+    empty.resumeResultId = typeof savedId === "string" ? savedId : null;
+    return empty;
+  }
+  if (active?.draft) return empty; // An explicit fresh start supersedes legacy drafts.
   const candidate = old.draft || read(local, LEGACY_KEY, {});
   const resume = sanitizeDraft({
     ...candidate,
@@ -198,6 +206,9 @@ export function persistState(state, local, session) {
     step: state.step,
     draft: state.draft,
     resultId: state.resultId,
+    resumeDraft: state.resumeDraft,
+    resumeStep: state.resumeStep,
+    resumeResultId: state.resumeResultId,
   });
   writeChanged(
     session,

@@ -124,9 +124,6 @@ test("fresh normal URL and previously cached context update safely while retaini
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
-  await page
     .getByRole("button", { name: "Optional Reference Recipe", exact: true })
     .click();
   await page
@@ -160,6 +157,8 @@ test("fresh normal URL and previously cached context update safely while retaini
     newSHA,
   );
   await expect(page).toHaveURL(url);
+  await expect(page.getByRole("heading", { name: "From Waste to Mycelium", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(
     page.getByRole("slider", { name: "Incubation Temperature", exact: true }),
   ).toHaveValue("26");
@@ -216,7 +215,7 @@ test("production output has coherent SHA manifest and content-hashed JS, CSS and
   expect(existsSync(resolve(newDir, js))).toBe(true);
   expect(existsSync(resolve(newDir, css))).toBe(true);
   const bundle = readFileSync(resolve(newDir, js), "utf8");
-  expect(bundle).toMatch(/assets\/coastal-storybook-[a-f0-9]{12}\.png/);
+  expect(bundle).toMatch(/assets\/harbour-background-[a-f0-9]{12}\.png/);
   expect(bundle).toMatch(/assets\/illustrated-materials-[a-f0-9]{12}\.png/);
   expect(bundle).not.toContain("serviceWorker.register");
 });

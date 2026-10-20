@@ -38,7 +38,7 @@ const record = (id, number = 1) => ({
   reasons: ["Original recorded reason."],
   customField: "preserve-me",
 });
-test("Enter and Begin clear every active field while retaining notebook records and privacy", () => {
+test("Entering clears every active field while retaining notebook records and privacy", () => {
   const state = {
     ...loadState(memory(), memory()),
     step: 0,
@@ -55,16 +55,20 @@ test("Enter and Begin clear every active field while retaining notebook records 
     },
     resultId: "previous-visitor",
     resumeDraft: referenceDraft(),
+    resumeStep: 4,
+    resumeResultId: "previous-visitor",
     history: [record("previous-visitor", 10)],
     nextNumber: 11,
     privacy: "session",
   };
   for (const step of [1, 2]) {
     const fresh = startVisitor(state, step);
-    assert.equal(fresh.step, step);
+    assert.equal(fresh.step, 2);
     assert.deepEqual(fresh.draft, freshDraft());
     assert.equal(fresh.resultId, null);
     assert.equal(fresh.resumeDraft, null);
+    assert.equal(fresh.resumeStep, null);
+    assert.equal(fresh.resumeResultId, null);
     assert.equal(fresh.history, state.history);
     assert.equal(fresh.nextNumber, 11);
     assert.equal(fresh.privacy, "session");
@@ -99,7 +103,7 @@ test("unfinished legacy draft is offered for explicit resume, never auto-loaded"
   assert.deepEqual(state.draft.portions, {});
   assert.deepEqual(state.resumeDraft.portions, { sawdust: 60, straw: 40 });
 });
-test("same-tab refresh restores recipe, conditions and paused sequence; a new tab is empty", () => {
+test("same-tab refresh offers explicit resume, keeps the landing draft empty and retains the checkpoint", () => {
   const local = memory(),
     session = memory();
   let state = loadState(local, session);
@@ -115,10 +119,29 @@ test("same-tab refresh restores recipe, conditions and paused sequence; a new ta
   };
   persistState(state, local, session);
   const restored = loadState(local, session);
-  assert.equal(restored.step, 4);
-  assert.equal(restored.draft.growthProgress, 45);
-  assert.equal(restored.draft.temperature, 24);
+  assert.equal(restored.step, 0);
+  assert.deepEqual(restored.draft, freshDraft());
+  assert.equal(restored.resumeStep, 4);
+  assert.equal(restored.resumeDraft.growthProgress, 45);
+  assert.equal(restored.resumeDraft.temperature, 24);
+  // Persisting the empty landing page must not overwrite the pending snapshot.
+  persistState(restored, local, session);
+  const again = loadState(local, session);
+  assert.deepEqual(again.resumeDraft, restored.resumeDraft);
+  assert.equal(again.resumeStep, 4);
+  persistState(startVisitor(again), local, session);
+  assert.equal(loadState(local, session).resumeDraft, null);
   assert.deepEqual(loadState(local, memory()).draft.portions, {});
+});
+test("retired introduction checkpoints resume in mixing, and fresh starts do not revive a legacy draft", () => {
+  const local = memory({ [STORAGE_KEY]: JSON.stringify({ draft: referenceDraft() }) });
+  const session = memory({ [ACTIVE_KEY]: JSON.stringify({ step: 1, draft: referenceDraft() }) });
+  const recovered = loadState(local, session);
+  assert.equal(recovered.step, 0);
+  assert.equal(recovered.resumeStep, 2);
+  persistState(startVisitor(recovered), local, session);
+  assert.equal(loadState(local, session).resumeDraft, null);
+  assert.deepEqual(loadState(local, session).draft, freshDraft());
 });
 test("starting a new recipe and exceeding 24 records never prunes completed history", () => {
   const history = Array.from({ length: 35 }, (_, i) =>

@@ -638,13 +638,6 @@ input {
   position: absolute;
   inset: 12px 32px 85px;
   z-index: -2;
-  opacity: 0.8;
-}
-.scene-window:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: #f3ebd94d;
 }
 .scene-architecture {
   position: absolute;
@@ -1053,9 +1046,6 @@ input {
 .stirring-screen .stirring-spoon {
   top: 50px;
 }
-.stirring-screen .scene-window {
-  opacity: 0.5;
-}
 .stirring-screen .stirring-instructions {
   min-height: 80px;
 }
@@ -1185,7 +1175,6 @@ input {
 }
 .conditions-room .scene-window {
   bottom: 58%;
-  opacity: 0.7;
 }
 .instrument {
   position: relative;
@@ -1518,7 +1507,6 @@ input {
 }
 .cultivation-chamber .scene-window {
   inset: 15px 35px 180px;
-  opacity: 0.6;
 }
 .chamber-label {
   display: flex;
@@ -3046,7 +3034,6 @@ input {
   }
   .scene-window {
     inset: 10px 22% 85px;
-    opacity: 0.8;
   }
   .mix-workbench {
     padding: 36px 35px 20px;
@@ -3897,4 +3884,19 @@ input {
 .result-evidence thead th {
   font-size: 12px;
   background: #b8c8aa44;
+}
+
+/* Keep small scene labels readable without tinting the supplied harbour image. */
+.generative-label,
+.chamber-progress > span,
+.growth-phase-dots > span,
+.shelf-instruction {
+  color: #35413a;
+  background: #f3ebd9;
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px #f3ebd9;
+}
+.generative-label {
+  width: fit-content;
+  max-width: 100%;
 }

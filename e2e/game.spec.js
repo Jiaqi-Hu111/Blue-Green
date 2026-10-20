@@ -11,12 +11,7 @@ async function begin(page) {
   await page
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", { name: /Welcome to the/ }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
+  await expect(page.locator(".intro-screen")).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: /Mix Natural Ingredients/ }),
   ).toBeVisible();
@@ -50,6 +45,18 @@ async function shot(page, name) {
 async function assertEnglishAndLayout(page) {
   const content = await page.locator("body").innerText();
   expect(content).not.toMatch(/[\u3400-\u9fff]/);
+  expect(content).not.toMatch(/colon(?:iz|is)(?:ation|e|ed|ing)/i);
+  await expect(page.locator('img[src*="coastal-storybook"]')).toHaveCount(0);
+  for (const img of await page.locator(".coastal-window > img").all()) {
+    await expect(img).toHaveAttribute("src", /\/Blue-Green\/assets\/harbour-background-[a-f0-9]{12}\.png$/);
+    await expect(img).toHaveCSS("object-fit", "cover");
+    await expect(img).toHaveCSS("filter", "none");
+    await expect(img.locator("..")).toHaveCSS("opacity", "1");
+    await expect.poll(() => img.evaluate(el => ({ loaded: el.complete,
+      width: el.naturalWidth, height: el.naturalHeight }))).toEqual({
+      loaded: true, width: 1154, height: 870,
+    });
+  }
   const labels = await page
     .locator("[aria-label]")
     .evaluateAll((els) =>
@@ -75,16 +82,13 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await page
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
-  await shot(page, "intro-mobile");
+  await shot(page, "ingredients-mobile");
   await assertEnglishAndLayout(page);
   await page
-    .getByRole("button", { name: "Learn about Straw", exact: true })
+    .getByRole("button", { name: "About Straw", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toContainText("Plant fibres");
   await page.keyboard.press("Escape");
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
   await expect(
     page.getByRole("button", { name: "Mix Ingredients", exact: true }),
   ).toBeDisabled();
@@ -112,6 +116,7 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   expect(await page.locator(".chamber-progress").textContent()).toBe(paused);
   await shot(page, "growth-mobile");
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   expect(await page.locator(".chamber-progress").textContent()).toBe(paused);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page
@@ -164,6 +169,7 @@ test("complete eight-stage mobile journey, local notebook, lifecycle and four ou
   await shot(page, "notebook-mobile");
   await assertEnglishAndLayout(page);
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(page.locator(".notebook-record")).toHaveCount(1);
   await page
     .getByRole("button", { name: "Duplicate experiment 1", exact: true })
@@ -350,6 +356,7 @@ test("touch pointer drag and stirring alternatives work without resetting back n
     page.getByText("Beautifully blended!", { exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(
     page.getByText("Beautifully blended!", { exact: true }),
   ).toBeVisible();
@@ -549,9 +556,6 @@ test("desktop/tablet/compact-phone layouts and production subdirectory assets", 
     await page
       .getByRole("button", { name: "Enter the Laboratory", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Begin Experiment", exact: true })
-      .click();
     await assertEnglishAndLayout(page);
     await add(page, "Sawdust");
     await add(page, "Straw");
@@ -561,7 +565,7 @@ test("desktop/tablet/compact-phone layouts and production subdirectory assets", 
       .click();
   }
   for (const image of [
-    "coastal-storybook.png",
+    "harbour-background.png",
     "illustrated-materials.png",
     "mycelium.png",
   ]) {
@@ -650,6 +654,7 @@ test("storybook instruments remain on-screen and the circular dial controls real
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("");
+    await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
     await page
       .getByRole("heading", { name: "Incubation Period", exact: true })
       .waitFor();
@@ -691,7 +696,7 @@ test("storybook instruments remain on-screen and the circular dial controls real
   await expect(dial).toHaveAttribute("aria-valuenow", "29");
 });
 
-test("stirring is a distinct illustrated scene with substrate and no premature colonization", async ({
+test("stirring is a distinct illustrated scene with substrate and no premature growth", async ({
   page,
 }) => {
   await begin(page);
@@ -709,6 +714,7 @@ test("stirring is a distinct illustrated scene with substrate and no premature c
   await expect(page.locator(".mixing-room .growth-visualization")).toHaveCount(
     0,
   );
+  await assertEnglishAndLayout(page);
   await shot(page, "stirring-mobile");
   await page.getByRole("button", { name: "Auto Mix", exact: true }).click();
   await expect(

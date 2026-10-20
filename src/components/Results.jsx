@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { neutralGrowthText } from "../text";
 import {
   ArrowRight,
   RotateCcw,
@@ -47,12 +47,12 @@ export function ResultPanel({
           {result.feedback?.version === 1 && (
             <div className="educational-feedback">
               <h2>Your conditions, explained.</h2>
-              <p>{result.feedback.summary}</p>
+              <p>{neutralGrowthText(result.feedback.summary)}</p>
               <dl className="feedback-factors">
                 {result.feedback.factors.map((factor) => (
                   <div key={factor.id}>
                     <dt>
-                      {factor.label}
+                      {neutralGrowthText(factor.label)}
                       <span className={"factor-status " + factor.status}>
                         {factor.status === "within"
                           ? "Within model"
@@ -63,17 +63,17 @@ export function ResultPanel({
                               : "Limiting flag"}
                       </span>
                     </dt>
-                    <dd>{factor.text}</dd>
+                    <dd>{neutralGrowthText(factor.text)}</dd>
                   </div>
                 ))}
               </dl>
               <h3>Ideas for your next model experiment</h3>
               <ul className="feedback-adjustments">
                 {result.feedback.adjustments.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>{neutralGrowthText(item)}</li>
                 ))}
               </ul>
-              <p className="fine-print">{result.feedback.note}</p>
+              <p className="fine-print">{neutralGrowthText(result.feedback.note)}</p>
             </div>
           )}
           <details className="result-analysis" open={!result.feedback}>
@@ -82,7 +82,7 @@ export function ResultPanel({
               {result.reasons.map((reason, i) => (
                 <li key={reason}>
                   <span>{String(i + 1).padStart(2, "0")}</span>
-                  <p>{reason}</p>
+                  <p>{neutralGrowthText(reason)}</p>
                 </li>
               ))}
             </ol>
@@ -95,7 +95,7 @@ export function ResultPanel({
           Published research supports general relationships. None of these
           sources validates BLUEGREEN’s exact bands, weights or outcome
           classifications or stylised imagery. The animation does not predict
-          fungal morphology, colonization speed or detected contamination.
+          fungal morphology, growth speed or detected contamination.
         </p>
         <div
           className="evidence-table-scroll"

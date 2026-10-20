@@ -16,9 +16,6 @@ async function enter(page) {
   await page
     .getByRole("button", { name: "Enter the Laboratory", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
 }
 async function empty(page) {
   await expect(page.locator(".vessel-materials")).toHaveCount(0);
@@ -175,7 +172,7 @@ test("new exhibition visitors start empty; inline ratios update the vessel and s
   expect(errors).toEqual([]);
 });
 
-test("refresh and explicit Resume preserve the active run; Enter and Begin always clear it", async ({
+test("refresh and explicit Resume preserve the active run; Enter always clears it", async ({
   page,
 }) => {
   await page.goto("");
@@ -192,6 +189,9 @@ test("refresh and explicit Resume preserve the active run; Enter and Begin alway
     .getByRole("slider", { name: "Incubation Temperature", exact: true })
     .fill("27");
   await page.reload();
+  await expect(page.getByRole("heading", { name: "From Waste to Mycelium", exact: true })).toBeVisible();
+  await expect(page.locator(".recipe-composition-row")).toHaveCount(0);
+  await page.getByRole("button", { name: "Resume Previous Experiment", exact: true }).click();
   await expect(
     page.getByRole("slider", { name: "Incubation Temperature", exact: true }),
   ).toHaveValue("27");
@@ -238,15 +238,10 @@ test("refresh and explicit Resume preserve the active run; Enter and Begin alway
           .portions,
     ),
   ).toEqual({});
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
   await empty(page);
   await page.getByRole("button", { name: "Add Sawdust", exact: true }).click();
   await page.getByRole("button", { name: "Go back", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Begin Experiment", exact: true })
-    .click();
+  await enter(page);
   await empty(page);
   await notebook(page);
   await expect(page.locator(".notebook-record")).toHaveCount(1);

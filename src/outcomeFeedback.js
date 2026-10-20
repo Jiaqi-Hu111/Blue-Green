@@ -165,7 +165,7 @@ export const EVIDENCE_TABLE = [
   {
     topic: "Materials",
     principle:
-      "Substrate type, fibre condition and processing influence colonisation and composite properties.",
+      "Substrate type, fibre condition and processing influence mycelium growth and composite properties.",
     assumption:
       "Coffee >40% and paper >50% each add one stress flag. Only two/three-material blends are covered.",
     sources: ["elsacker2019", "appels2019"],
