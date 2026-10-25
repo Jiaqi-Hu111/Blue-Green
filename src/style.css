@@ -185,6 +185,14 @@ input {
   margin-right: 3px;
   border: 0;
   box-shadow: none;
+  background: transparent;
+}
+.site-header .icon-button {
+  background: transparent;
+  box-shadow: none;
+}
+.site-header .icon-button:hover {
+  background: #e6dfca;
 }
 .header-left:has(.back-button) .wordmark {
   font-size: 17px;
@@ -320,15 +328,13 @@ input {
   line-height: 1.3;
   position: relative;
   isolation: isolate;
-  box-shadow:
-    inset 0 0 0 3px #f3ebd955,
-    0 2px 0 #a78a6077;
+  box-shadow: none;
 }
 .button:before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid currentColor;
+  border: 1px solid transparent;
   border-radius: 9px 6px 11px 7px;
   opacity: 0.2;
   pointer-events: none;
@@ -341,7 +347,7 @@ input {
   background: #2f7776;
 }
 .button.secondary {
-  background: #f3ebd9;
+  background: #f3ebd999;
   color: #35413a;
 }
 .button.secondary:hover {
@@ -1090,8 +1096,8 @@ input {
   align-items: center;
   gap: 12px;
   padding: 13px 15px;
-  background: #f3ebd9e6;
-  border: 1px solid #71816866;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 5px 14px 8px 13px;
   max-width: 650px;
   margin: 22px auto 0;
@@ -1515,12 +1521,12 @@ input {
   justify-content: center;
   font-size: 6px;
   letter-spacing: 1px;
-  background: #f3ebd9e6;
+  background: transparent;
   width: max-content;
   max-width: 100%;
   margin: auto;
   padding: 7px 10px;
-  border: 1px solid #35413a55;
+  border: 1px solid transparent;
 }
 .growth-vessel {
   position: relative;
@@ -1898,7 +1904,7 @@ input {
   align-items: center;
   gap: 13px;
   text-align: left;
-  background: #f3ebd9;
+  background: transparent;
   border: 1px solid #71816888;
   border-radius: 4px 7px 6px 9px;
   padding: 15px;
@@ -1912,6 +1918,9 @@ input {
 .application-options > button.selected {
   background: #c2d3bb;
   border-color: #35413a;
+}
+.application-options > button:hover:not(.selected) {
+  background: #e9e0c9;
 }
 .application-note {
   padding: 25px 3px 0;
@@ -1935,7 +1944,7 @@ input {
   gap: 10px;
   border-left: 2px solid #a77c62;
   padding: 13px 15px;
-  background: #e3d8bf66;
+  background: transparent;
   margin: 20px 0 9px;
 }
 .material-caution svg {
@@ -1960,7 +1969,7 @@ input {
   padding: 30px 24px;
   border-top: 1px solid #71816877;
   border-bottom: 1px solid #71816877;
-  background: #dbe1cb66;
+  background: transparent;
 }
 .formation-note h2 {
   font-size: 32px;
@@ -2050,8 +2059,8 @@ input {
 }
 .lifecycle-stage {
   padding: 23px;
-  background: #e4e1cc;
-  border: 1px solid #71816888;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 5px 10px 7px 9px;
   min-height: 195px;
 }
@@ -3886,15 +3895,18 @@ input {
   background: #b8c8aa44;
 }
 
-/* Keep small scene labels readable without tinting the supplied harbour image. */
+/* A soft text halo keeps scene labels readable without rectangular backplates. */
+.chamber-label,
 .generative-label,
 .chamber-progress > span,
 .growth-phase-dots > span,
 .shelf-instruction {
   color: #35413a;
-  background: #f3ebd9;
-  border-radius: 2px;
-  box-shadow: 0 0 0 3px #f3ebd9;
+  text-shadow:
+    -1px -1px 1px #f3ebd9,
+    1px -1px 1px #f3ebd9,
+    -1px 1px 1px #f3ebd9,
+    1px 1px 1px #f3ebd9;
 }
 .generative-label {
   width: fit-content;
