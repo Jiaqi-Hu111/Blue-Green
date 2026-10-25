@@ -1,0 +1,200 @@
+{
+  "annotations": [
+    {
+      "text": "CULTIVATION CHAMBER / OBSERVATION",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "Mycelium-inspired generative visualisation",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "SEQUENCE 0%",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "0 / 18 ILLUSTRATIVE DAYS",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "01",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "02",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "03",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    },
+    {
+      "text": "04",
+      "background": "rgba(0, 0, 0, 0)",
+      "shadow": "none"
+    }
+  ],
+  "active": [
+    {
+      "text": "Play",
+      "disabled": false,
+      "background": "rgb(243, 235, 217)",
+      "border": "rgb(99, 121, 111)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    },
+    {
+      "text": "Skip Animation",
+      "disabled": false,
+      "background": "rgb(243, 235, 217)",
+      "border": "rgb(99, 121, 111)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    },
+    {
+      "text": "Restart Animation",
+      "disabled": false,
+      "background": "rgb(243, 235, 217)",
+      "border": "rgb(99, 121, 111)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    }
+  ],
+  "hover": [
+    "rgb(255, 248, 232)",
+    "rgb(255, 248, 232)",
+    "rgb(255, 248, 232)"
+  ],
+  "completed": [
+    {
+      "text": "Play",
+      "disabled": true,
+      "background": "rgb(227, 221, 205)",
+      "border": "rgb(171, 165, 143)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    },
+    {
+      "text": "Skip Animation",
+      "disabled": true,
+      "background": "rgb(227, 221, 205)",
+      "border": "rgb(171, 165, 143)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    },
+    {
+      "text": "Restart Animation",
+      "disabled": false,
+      "background": "rgb(243, 235, 217)",
+      "border": "rgb(99, 121, 111)",
+      "font": "12px / 16.8px Georgia, serif",
+      "opacity": "1",
+      "shadow": "none",
+      "before": "none"
+    }
+  ],
+  "layout": [
+    {
+      "width": 320,
+      "text": "Play",
+      "x": 48.65625,
+      "y": 397.234375,
+      "height": 44
+    },
+    {
+      "width": 320,
+      "text": "Skip Animation",
+      "x": 158.65625,
+      "y": 397.234375,
+      "height": 44
+    },
+    {
+      "width": 320,
+      "text": "Restart Animation",
+      "x": 109.171875,
+      "y": 451.234375,
+      "height": 44
+    },
+    {
+      "width": 390,
+      "text": "Play",
+      "x": 27.828125,
+      "y": 444.828125,
+      "height": 44
+    },
+    {
+      "width": 390,
+      "text": "Skip Animation",
+      "x": 137.828125,
+      "y": 444.828125,
+      "height": 44
+    },
+    {
+      "width": 390,
+      "text": "Restart Animation",
+      "x": 260.515625,
+      "y": 444.828125,
+      "height": 44
+    },
+    {
+      "width": 768,
+      "text": "Play",
+      "x": 216.828125,
+      "y": 688.640625,
+      "height": 44
+    },
+    {
+      "width": 768,
+      "text": "Skip Animation",
+      "x": 326.828125,
+      "y": 688.640625,
+      "height": 44
+    },
+    {
+      "width": 768,
+      "text": "Restart Animation",
+      "x": 449.515625,
+      "y": 688.640625,
+      "height": 44
+    },
+    {
+      "width": 1440,
+      "text": "Play",
+      "x": 552.828125,
+      "y": 703.546875,
+      "height": 44
+    },
+    {
+      "width": 1440,
+      "text": "Skip Animation",
+      "x": 662.828125,
+      "y": 703.546875,
+      "height": 44
+    },
+    {
+      "width": 1440,
+      "text": "Restart Animation",
+      "x": 785.515625,
+      "y": 703.546875,
+      "height": 44
+    }
+  ],
+  "pauseReplaySkipAndKeyboard": true
+}

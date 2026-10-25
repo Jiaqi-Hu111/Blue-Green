@@ -1,0 +1,168 @@
+{
+  "mobile": {
+    "boxes": [
+      {
+        "selector": "generative-label",
+        "text": "Mycelium-inspired generative visualisation",
+        "x": 101.34375,
+        "y": 704.328125,
+        "width": 187.3125,
+        "height": 17,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "chamber-progress",
+        "text": "SEQUENCE 100%\n18 / 18 ILLUSTRATIVE DAYS",
+        "x": 25,
+        "y": 738.328125,
+        "width": 340,
+        "height": 10.5,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "growth-phase-dots",
+        "text": "01\n02\n03\n04",
+        "x": 25,
+        "y": 773.828125,
+        "width": 340,
+        "height": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "phase-explanation",
+        "text": "PHASE 04\nGrowth Assessment\n\nThe sequence reaches its assessment. These visible threads are not measured biological growth.",
+        "x": 25,
+        "y": 805.828125,
+        "width": 340,
+        "height": 150,
+        "background": "rgb(243, 235, 217)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "button secondary ",
+        "text": "Play",
+        "x": 27.828125,
+        "y": 975.828125,
+        "width": 100,
+        "height": 44,
+        "background": "rgb(227, 221, 205)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "text-link",
+        "text": "Skip Animation",
+        "x": 137.828125,
+        "y": 975.828125,
+        "width": 112.6875,
+        "height": 44,
+        "background": "rgb(227, 221, 205)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "text-link",
+        "text": "Restart Animation",
+        "x": 260.515625,
+        "y": 975.828125,
+        "width": 101.65625,
+        "height": 44,
+        "background": "rgb(243, 235, 217)",
+        "opacity": "1",
+        "shadow": "none"
+      }
+    ],
+    "coverage": "0.5200086852676148",
+    "errors": []
+  },
+  "desktop": {
+    "boxes": [
+      {
+        "selector": "generative-label",
+        "text": "Mycelium-inspired generative visualisation",
+        "x": 626.34375,
+        "y": 957.078125,
+        "width": 187.3125,
+        "height": 17,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "chamber-progress",
+        "text": "SEQUENCE 100%\n18 / 18 ILLUSTRATIVE DAYS",
+        "x": 460,
+        "y": 991.078125,
+        "width": 520,
+        "height": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "growth-phase-dots",
+        "text": "01\n02\n03\n04",
+        "x": 221,
+        "y": 1028.078125,
+        "width": 998,
+        "height": 13.5,
+        "background": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "phase-explanation",
+        "text": "PHASE 04\nGrowth Assessment\n\nThe sequence reaches its assessment. These visible threads are not measured biological growth.",
+        "x": 445,
+        "y": 1061.578125,
+        "width": 550,
+        "height": 152.96875,
+        "background": "rgb(243, 235, 217)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "button secondary ",
+        "text": "Play",
+        "x": 552.828125,
+        "y": 1234.546875,
+        "width": 100,
+        "height": 44,
+        "background": "rgb(227, 221, 205)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "text-link",
+        "text": "Skip Animation",
+        "x": 662.828125,
+        "y": 1234.546875,
+        "width": 112.6875,
+        "height": 44,
+        "background": "rgb(227, 221, 205)",
+        "opacity": "1",
+        "shadow": "none"
+      },
+      {
+        "selector": "text-link",
+        "text": "Restart Animation",
+        "x": 785.515625,
+        "y": 1234.546875,
+        "width": 101.65625,
+        "height": 44,
+        "background": "rgb(243, 235, 217)",
+        "opacity": "1",
+        "shadow": "none"
+      }
+    ],
+    "coverage": "0.5200004889347944",
+    "errors": []
+  }
+}

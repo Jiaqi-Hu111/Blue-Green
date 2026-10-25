@@ -1600,8 +1600,8 @@ input {
   margin: 20px auto 0;
   text-align: center;
   padding: 18px;
-  background: #f3ebd9eb;
-  border: 1px solid #35413a77;
+  background: #f3ebd9;
+  border: 1px solid transparent;
   border-radius: 6px 10px 4px 9px;
   min-height: 150px;
 }
@@ -1624,15 +1624,46 @@ input {
   gap: 24px;
   margin-top: 20px;
 }
-.growth-playback .button {
-  min-height: 44px;
-  min-width: 100px;
-  padding: 10px 17px;
+/* One surface and one outline per playback action; no inherited inner frame. */
+.growth-screen .growth-playback > button {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  font-size: 15px;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 6px;
+  background: #f3ebd9;
+  border: 1px solid #63796f;
+  border-radius: 6px 10px 4px 9px;
+  color: #163f42;
+  font: 12px / 1.4 Georgia, serif;
+  white-space: nowrap;
+  text-decoration: none;
+  opacity: 1;
+  box-shadow: none;
 }
-.growth-playback .text-link {
-  font-size: 12px;
+.growth-screen .growth-playback > .button {
+  min-width: 100px;
+}
+.growth-screen .growth-playback > button::before,
+.growth-screen .growth-playback > button::after {
+  content: none;
+}
+.growth-screen .growth-playback > button:not(:disabled):hover {
+  background: #fff8e8;
+  border-color: #163f42;
+  color: #12383b;
+  text-decoration: none;
+}
+.growth-screen .growth-playback > button:disabled,
+.growth-screen .growth-playback > button:disabled:hover {
+  background: #e3ddcd;
+  border-color: #aba58f;
+  color: #756e5c;
+  opacity: 1;
+  box-shadow: none;
 }
 .material-sample {
   position: relative;
@@ -3679,7 +3710,7 @@ input {
 }
 .growth-playback {
   flex-wrap: wrap;
-  gap: 10px 20px;
+  gap: 10px;
 }
 .growth-education {
   max-width: 680px;
@@ -3886,10 +3917,7 @@ input {
   background: #b8c8aa44;
 }
 
-/* Keep small scene labels readable without tinting the supplied harbour image. */
-.generative-label,
-.chamber-progress > span,
-.growth-phase-dots > span,
+/* Ingredient instructions retain their existing surface on the mixing page. */
 .shelf-instruction {
   color: #35413a;
   background: #f3ebd9;
@@ -3899,4 +3927,19 @@ input {
 .generative-label {
   width: fit-content;
   max-width: 100%;
+}
+
+/* Observation annotations belong to the scene rather than separate cards.
+   A subtle text halo protects small type over the harbour; it does not blur
+   or tint the image. Keep borders' dimensions so existing positions remain. */
+.growth-screen .generative-label,
+.growth-screen .chamber-progress > span,
+.growth-screen .growth-phase-dots > span,
+.growth-screen .chamber-label {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  color: #fff8e8;
+  text-shadow: 0 1px 2px #12383b, 0 0 2px #12383b;
 }
