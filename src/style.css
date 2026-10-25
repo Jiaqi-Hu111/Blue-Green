@@ -3912,3 +3912,44 @@ input {
   width: fit-content;
   max-width: 100%;
 }
+
+/* Growth observation only: unify the scenery above the existing 112px worktop. */
+.growth-screen .cultivation-chamber::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 112px;
+  z-index: -2;
+  background: url("../design-references/new background.png") center / cover no-repeat;
+  pointer-events: none;
+}
+.growth-screen .cultivation-chamber > .scene-window {
+  visibility: hidden;
+}
+.growth-screen .generative-label {
+  font-size: 12px;
+  line-height: 17px;
+}
+.growth-screen .chamber-progress {
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  line-height: 10.5px;
+  letter-spacing: 0.45px;
+}
+.growth-screen .growth-phase-dots > span {
+  gap: 8px;
+  font-size: 11px;
+  line-height: 12px;
+}
+.growth-screen .growth-phase-dots > .current {
+  color: var(--teal);
+  font-weight: 600;
+}
+@media (min-width: 600px) {
+  .growth-screen .chamber-progress {
+    line-height: 12px;
+  }
+  .growth-screen .growth-phase-dots > span {
+    line-height: 13.5px;
+  }
+}
