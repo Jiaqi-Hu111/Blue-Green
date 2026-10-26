@@ -3960,14 +3960,4 @@ input {
   }
 }
 
-/* Soften the harbour image on mixing and stirring pages only */
 
-.mixing-screen .scene-window::after,
-.stirring-screen .scene-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(243, 235, 217, 0.3);
-  pointer-events: none;
-  z-index: 0;
-}
