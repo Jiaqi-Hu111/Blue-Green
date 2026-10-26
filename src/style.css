@@ -3919,7 +3919,7 @@ input {
   position: absolute;
   inset: 0 0 112px;
   z-index: -2;
-  background: url("../design-references/new background.png") center / cover no-repeat;
+  background: url("../design-references/background.png") center / cover no-repeat;
   pointer-events: none;
 }
 .growth-screen .cultivation-chamber > .scene-window {
