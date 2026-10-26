@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none" stroke="#66899b" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M5 74V15Q5 5 15 5H74M11 65V20Q11 11 20 11H65"/>
-  <path d="M8 39C22 35 25 24 19 20C13 16 11 24 16 26C21 28 30 19 26 14C22 9 16 15 20 19C24 23 35 22 39 8"/>
-  <path d="M5 55C15 51 20 43 16 39C12 35 8 40 11 43C14 46 20 41 22 34M55 5C51 15 43 20 39 16C35 12 40 8 43 11C46 14 41 20 34 22"/>
-  <path d="m6 67 3 4-3 4-3-4Zm61-61 4 3 4-3-4-3Z" fill="#66899b" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 120" fill="none" stroke="#6b8392" stroke-width="0.85" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Open, interwoven scrolls replace a rectangular frame. -->
+  <path d="M8 51C0 41 0 23 10 13C21 1 41 2 47 14C54 28 42 40 30 35C19 31 19 19 27 17C35 14 40 25 33 27C29 29 26 24 29 22"/>
+  <path d="M10 13C4 25 10 39 18 46C30 56 34 67 28 77C22 88 9 83 11 74C13 66 24 69 21 75C19 79 14 76 16 73"/>
+  <path d="M27 6C43 1 51 10 60 16C73 25 87 23 91 13C95 3 84 0 80 6C76 12 84 17 87 12C89 9 85 7 84 10"/>
+  <!-- Smaller counter-curls leave air between the main flourishes. -->
+  <path d="M7 34C15 35 22 43 19 50C17 56 10 55 10 51C10 48 14 47 15 50M47 14C50 4 59 3 61 8C63 13 56 16 54 12"/>
+  <path d="M9 89C16 85 20 91 17 95C15 99 10 97 11 94M97 8C101 14 109 13 109 9C109 5 104 5 104 8"/>
+  <!-- Fine outer framing and tapered terminal details. -->
+  <path d="M4 26C2 12 13 3 27 4M7 52C3 64 4 81 8 89L8 103M94 7C103 7 114 8 124 7" stroke-width="0.65"/>
+  <path d="m8 104 2 4-2 4-2-4Zm118-97 4-2 4 2-4 2Z" fill="#6b8392" stroke="none"/>
+  <path d="M8 116v2M138 7h3" stroke-width="0.65"/>
 </svg>
