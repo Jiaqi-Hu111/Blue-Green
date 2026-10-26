@@ -3919,28 +3919,43 @@ input {
   max-width: 100%;
 }
 
-/* Only the three blue laboratory panels use the supplied, unmodified artwork.
-   The proportional top layer keeps both corner motifs inside narrow panels;
-   its plain lower texture blends into a cover-sized copy of the same image.
+/* Keep the same unmodified artwork, with a plain centre crop beneath two
+   smaller corner views. Each view samples 520 x 440 original image pixels;
+   proportional sizing preserves the drawing and anchors it to the outer edge.
    Window artwork, furniture and instruments keep their existing layers. */
 .mix-screen .mixing-room,
 .conditions-screen .conditions-room {
-  background: url("../design-references/background1.png") center / cover no-repeat;
+  background: url("../design-references/background1.png") center / auto max(120%, 1200px) no-repeat;
 }
 .mix-screen .mixing-room::before,
-.conditions-screen .conditions-room::before {
+.mix-screen .mixing-room::after,
+.conditions-screen .conditions-room::before,
+.conditions-screen .conditions-room::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  aspect-ratio: 1672 / 941;
-  background: url("../design-references/background1.png") center top / 100% auto no-repeat;
-  mask-image: linear-gradient(#000 70%, transparent);
+  top: 0;
+  width: clamp(56px, 12vw, 128px);
+  aspect-ratio: 13 / 11;
+  /* 1672 / 520 sets the proportional source width for each original corner. */
+  background: url("../design-references/background1.png") left top / 321.538462% auto no-repeat;
+  mask-image:
+    linear-gradient(to right, #000 90%, transparent),
+    linear-gradient(#000 90%, transparent);
+  mask-composite: intersect;
   z-index: -3;
   pointer-events: none;
 }
+.mix-screen .mixing-room::before,
+.conditions-screen .conditions-room::before {
+  left: 0;
+}
 .mix-screen .mixing-room::after,
 .conditions-screen .conditions-room::after {
-  content: none;
+  right: 0;
+  background-position: right top;
+  mask-image:
+    linear-gradient(to left, #000 90%, transparent),
+    linear-gradient(#000 90%, transparent);
 }
 .mix-screen .mixing-room .edge-sprig,
 .mix-screen .mixing-room .window-branch,
