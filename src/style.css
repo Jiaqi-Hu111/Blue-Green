@@ -1182,6 +1182,12 @@ input {
 .conditions-room .scene-window {
   bottom: 58%;
 }
+
+/* Hide the scenic window on the Growth Conditions page only */
+.conditions-room .scene-window {
+  display: none;
+}
+  
 .instrument {
   position: relative;
   border: 1.4px solid #576149;
