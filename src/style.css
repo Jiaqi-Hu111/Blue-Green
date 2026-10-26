@@ -3935,8 +3935,8 @@ input {
   content: "";
   position: absolute;
   top: 4px;
-  width: 76px;
-  height: 76px;
+  width: clamp(88px, 14vw, 144px);
+  aspect-ratio: 6 / 5;
   background: url("./assets/lab-corner.svg") top left / contain no-repeat;
   opacity: 0.65;
   z-index: -3;
