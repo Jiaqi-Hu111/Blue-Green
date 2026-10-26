@@ -3919,37 +3919,28 @@ input {
   max-width: 100%;
 }
 
-/* Mixing (including stirring) and conditions share a quiet blue paper surface.
+/* Only the three blue laboratory panels use the supplied, unmodified artwork.
+   The proportional top layer keeps both corner motifs inside narrow panels;
+   its plain lower texture blends into a cover-sized copy of the same image.
    Window artwork, furniture and instruments keep their existing layers. */
 .mix-screen .mixing-room,
 .conditions-screen .conditions-room {
-  background-color: #d3e3eb;
-  background-image:
-    radial-gradient(ellipse at 50% 0, #f3f7f9a6, transparent 75%),
-    linear-gradient(110deg, #dce9ef, #cbdfe9);
-}
-.mix-screen .mixing-room::before,
-.mix-screen .mixing-room::after,
-.conditions-screen .conditions-room::before,
-.conditions-screen .conditions-room::after {
-  content: "";
-  position: absolute;
-  top: 4px;
-  width: clamp(88px, 14vw, 144px);
-  aspect-ratio: 6 / 5;
-  background: url("./assets/lab-corner.svg") top left / contain no-repeat;
-  opacity: 0.65;
-  z-index: -3;
-  pointer-events: none;
+  background: url("../design-references/background1.png") center / cover no-repeat;
 }
 .mix-screen .mixing-room::before,
 .conditions-screen .conditions-room::before {
-  left: 4px;
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 1672 / 941;
+  background: url("../design-references/background1.png") center top / 100% auto no-repeat;
+  mask-image: linear-gradient(#000 70%, transparent);
+  z-index: -3;
+  pointer-events: none;
 }
 .mix-screen .mixing-room::after,
 .conditions-screen .conditions-room::after {
-  right: 4px;
-  transform: scaleX(-1);
+  content: none;
 }
 .mix-screen .mixing-room .edge-sprig,
 .mix-screen .mixing-room .window-branch,
