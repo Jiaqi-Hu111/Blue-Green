@@ -73,7 +73,8 @@ export function Welcome({ onEnter, onAbout, hasProgress, onResume }) {
         <div className="welcome-wood" />
       </div>
       <div className="welcome-content">
-        <p>Discover how organic waste can become something new.</p>
+        <p>Explore how organic waste can become mycelium-based materials. (This research-informed
+  simulation is illustrative and does not predict real growth outcomes.)</p>
         <div className="welcome-actions">
           <Button onClick={onEnter}>
             Enter the Laboratory
