@@ -27,15 +27,7 @@ export const SOURCES = [
     journal: "PLOS ONE 14, e0213954",
     url: "https://doi.org/10.1371/journal.pone.0213954",
   },
-  {
-    id: "fungar2021",
-    title: "D5.2 — Report on preliminary characterisation and modelling",
-    authors: "FUNGAR consortium; CITA / Mogu",
-    year: 2021,
-    journal:
-      "Public technical report, EU H2020 grant 858132 (not peer reviewed)",
-    url: "https://cordis.europa.eu/project/id/858132/results",
-  },
+ 
 ];
 export const REFERENCE_NOTES = [
   "Published research describes fungal mycelium growing through plant-derived substrates and binding them into composite structures.",
